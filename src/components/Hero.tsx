@@ -8,23 +8,34 @@ export default function Hero() {
   return (
     <section className="relative overflow-hidden py-20 md:py-28">
 
-      {/* Background blobs */}
+      {/* Background blob — right side shaped panel (behind all content) */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute top-0 right-0 w-1/2 h-full"
+        style={{
+          background: `linear-gradient(135deg, rgba(251,176,64,0.15), rgba(240,80,99,0.15), rgba(0,174,239,0.15))`,
+          borderRadius: '0 0 0 60%',
+          zIndex: 0,
+        }}
+      />
+
+      {/* Background blobs — decorative circles */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute top-20 left-10 w-72 h-72 rounded-full blur-3xl"
-        style={{ background: `${PINK}33` }}
+        style={{ background: `${PINK}33`, zIndex: 0 }}
       />
       <div
         aria-hidden="true"
         className="pointer-events-none absolute bottom-20 right-10 w-96 h-96 rounded-full blur-3xl"
-        style={{ background: `${BLUE}33` }}
+        style={{ background: `${BLUE}33`, zIndex: 0 }}
       />
 
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
 
           {/* ── LEFT COLUMN — text ── */}
-          <div className="relative">
+          <div className="relative z-10">
 
             {/* Badge */}
             <div
@@ -37,8 +48,8 @@ export default function Hero() {
 
             {/* H1 */}
             <h1 className="font-black text-4xl md:text-6xl leading-tight text-gray-900">
-              Un espace pour<br />
-              grandir, créer<br />
+              Ta place.<br />
+              Tes idées.<br />
               <span
                 style={{
                   background: `linear-gradient(135deg, ${ORANGE}, ${PINK}, ${BLUE})`,
@@ -47,14 +58,13 @@ export default function Hero() {
                   backgroundClip: 'text',
                 }}
               >
-                et s'épanouir
+                Ta maison.
               </span>
             </h1>
 
             {/* Paragraph */}
             <p className="mt-6 text-lg text-gray-600 max-w-lg">
-              La Maison des jeunes de Rivière-des-Prairies offre un lieu sûr,
-              gratuit et bienveillant pour les jeunes de 12 à 17 ans.
+              La Maison des jeunes de Rivière-des-Prairies, c'est un lieu gratuit et bienveillant pour créer, apprendre, s'exprimer et vivre des projets qui te ressemblent.
             </p>
 
             {/* CTA buttons */}
@@ -76,21 +86,10 @@ export default function Hero() {
                 Prochains événements
               </a>
             </div>
-
-            {/* Floating stat card */}
-            <div
-              className="animate-float-slow absolute -bottom-6 lg:bottom-10 right-0 lg:-right-8 bg-white rounded-2xl px-6 py-4 flex items-center gap-3 z-10"
-              style={{ boxShadow: '0 10px 30px -12px rgba(0,0,0,0.15)' }}
-            >
-              <div className="font-black text-2xl" style={{ color: PINK }}>500+</div>
-              <div className="text-sm text-gray-600 leading-snug">
-                jeunes accompagnés<br />par année
-              </div>
-            </div>
           </div>
 
-          {/* ── RIGHT COLUMN — image placeholder ── */}
-          <div className="relative mt-12 lg:mt-0">
+          {/* ── RIGHT COLUMN — image ── */}
+          <div className="relative z-10 mt-12 lg:mt-0">
             <div className="relative aspect-[4/5] md:aspect-square rounded-[2rem] overflow-hidden bg-gradient-to-br from-pink-100 to-blue-100 flex items-center justify-center">
               <span className="text-gray-400 text-lg select-none">📸 hero-youth.jpg</span>
 
@@ -102,6 +101,14 @@ export default function Hero() {
                   background: `linear-gradient(to bottom, rgba(240,80,99,0.15), rgba(0,174,239,0.15))`,
                 }}
               />
+
+              {/* Floating stat card — absolute bottom-left of image */}
+              <div
+                className="animate-float-slow absolute bottom-6 left-6 bg-white rounded-2xl px-6 py-4 shadow flex items-center gap-3 z-10"
+              >
+                <div className="font-black text-2xl" style={{ color: PINK }}>500+</div>
+                <div className="text-sm text-gray-500 leading-snug">jeunes/an</div>
+              </div>
             </div>
           </div>
 

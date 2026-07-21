@@ -1,39 +1,28 @@
 import { useState } from 'react'
-import { Heart, Users, Sparkles, Rocket } from 'lucide-react'
-import type { LucideIcon } from 'lucide-react'
+import { Heart } from 'lucide-react'
 
 const PINK   = '#F05063'
 const ORANGE = '#FBB040'
-const BLUE   = '#00AEEF'
 
-const amounts = ['25 $', '50 $', '100 $', 'Autre']
+const amounts = [
+  { value: '20 $',  label: 'Un atelier pour un jeune' },
+  { value: '50 $',  label: "Une semaine d'activités" },
+  { value: '100 $', label: 'Un mois de programme complet' },
+  { value: '200 $', label: 'Une session CIEC complète' },
+]
 
-interface StatCard {
-  icon: LucideIcon
-  color: string
-  stat: string
-  label: string
-  sub: string
-}
-
-const statCards: StatCard[] = [
+const statCards = [
   {
-    icon:  Users,
-    color: PINK,
     stat:  '500+',
     label: 'jeunes accompagnés par année',
-    sub:   'dans tous nos programmes',
+    sub:   'dans tous nos programmes gratuits',
   },
   {
-    icon:  Sparkles,
-    color: ORANGE,
     stat:  '100%',
     label: 'des services sont gratuits',
     sub:   'pour tous les jeunes de 12-17 ans',
   },
   {
-    icon:  Rocket,
-    color: BLUE,
     stat:  '40+',
     label: "années d'expérience",
     sub:   'au service de la communauté RDP',
@@ -44,79 +33,82 @@ export default function Donation() {
   const [selected, setSelected] = useState('50 $')
 
   return (
-    <section className="py-20 md:py-28">
+    <section className="py-20 md:py-28 bg-gray-50">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
 
-          {/* LEFT — pink donation card */}
+          {/* LEFT — donation card */}
           <div
             className="rounded-[2rem] p-10 text-white"
-            style={{ background: `linear-gradient(135deg, ${ORANGE} 0%, ${PINK} 100%)` }}
+            style={{ background: `linear-gradient(135deg, ${ORANGE}, ${PINK})` }}
           >
             {/* Label */}
-            <div className="flex items-center gap-2 text-white/80 font-semibold text-sm uppercase tracking-wide">
-              <Heart size={16} strokeWidth={2.5} />
-              Faire un don
+            <div className="flex items-center gap-2 font-semibold text-sm uppercase tracking-wide" style={{ color: PINK }}>
+              <Heart size={16} strokeWidth={2.5} color={PINK} />
+              <span className="text-white/80">FAIRE UN DON</span>
             </div>
 
             {/* Heading */}
-            <h2 className="mt-2 font-black text-3xl md:text-4xl text-white">
-              Soutiens les jeunes de RDP
+            <h2 className="mt-2 font-black text-4xl md:text-5xl text-white">
+              Ton don change une vie de jeune.
             </h2>
 
             {/* Body */}
-            <p className="mt-4 text-white/80 leading-relaxed">
-              Ton don aide directement les jeunes de Rivière-des-Prairies à accéder
-              à des programmes gratuits.
+            <p className="mt-4 text-white/80">
+              Chaque dollar versé à la MDJ-RDP permet à un jeune de participer à nos programmes, d'explorer ses passions et de vivre des projets qui le construisent.
             </p>
 
-            {/* Amount buttons */}
-            <div className="grid grid-cols-4 gap-3 mt-8">
-              {amounts.map((amount) => (
-                <button
-                  key={amount}
-                  type="button"
-                  onClick={() => setSelected(amount)}
-                  className="rounded-full py-3 text-sm font-bold transition-all"
-                  style={
-                    selected === amount
-                      ? { background: '#fff', color: PINK, border: 'none' }
-                      : { background: 'rgba(255,255,255,0.20)', color: '#fff', border: '1px solid rgba(255,255,255,0.30)' }
-                  }
-                >
-                  {amount}
-                </button>
-              ))}
+            {/* Amount options */}
+            <div className="flex flex-col gap-3 mt-8">
+              {amounts.map(({ value, label }) => {
+                const isSelected = selected === value
+                return (
+                  <div
+                    key={value}
+                    onClick={() => setSelected(value)}
+                    className="flex items-center gap-4 rounded-2xl p-4 border cursor-pointer transition-colors"
+                    style={{
+                      background: isSelected ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.10)',
+                      borderColor: isSelected ? 'rgba(255,255,255,0.60)' : 'rgba(255,255,255,0.20)',
+                    }}
+                  >
+                    {/* Radio circle */}
+                    <div
+                      className="w-5 h-5 rounded-full border-2 border-white flex items-center justify-center shrink-0"
+                    >
+                      {isSelected && (
+                        <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                      )}
+                    </div>
+                    <div>
+                      <span className="font-bold text-white text-lg">{value}</span>
+                      <span className="text-white/70 text-sm ml-3">{label}</span>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
 
             {/* CTA */}
             <button
               type="button"
-              className="mt-6 w-full rounded-full py-4 text-lg font-bold transition-colors hover:bg-gray-50"
+              className="mt-8 w-full rounded-full py-4 text-lg font-bold transition-colors hover:bg-gray-50"
               style={{ background: '#fff', color: PINK }}
             >
               Faire un don maintenant
             </button>
           </div>
 
-          {/* RIGHT — stat cards */}
+          {/* RIGHT — impact stat cards */}
           <div className="flex flex-col gap-4">
-            {statCards.map(({ icon: Icon, color, stat, label, sub }) => (
+            {statCards.map(({ stat, label, sub }) => (
               <div
                 key={stat + label}
-                className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center gap-6"
+                className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm"
               >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: `${color}1A` }}
-                >
-                  <Icon size={20} strokeWidth={2} style={{ color }} />
-                </div>
-                <div>
-                  <div className="font-black text-4xl text-gray-900 leading-none">{stat}</div>
-                  <div className="font-semibold text-gray-700 mt-1">{label}</div>
-                  <div className="text-sm text-gray-400 mt-0.5">{sub}</div>
-                </div>
+                <div className="font-black text-3xl text-gray-900">{stat}</div>
+                <div className="text-gray-500 text-sm mt-1">{label}</div>
+                <div className="text-gray-400 text-xs mt-1">{sub}</div>
               </div>
             ))}
           </div>
