@@ -56,7 +56,17 @@ export default function Programs() {
           TES ACTIVITÉS
         </p>
         <h2 className="mt-2 font-black text-4xl md:text-5xl text-gray-900">
-          Trouve ton terrain de jeu.
+          Trouve ton{' '}
+          <span
+            style={{
+              background: 'linear-gradient(135deg, #FBB040, #F05063)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
+            terrain de jeu.
+          </span>
         </h2>
 
         {/* 2-col grid */}

@@ -1,3 +1,5 @@
+import { ChevronDown } from 'lucide-react'
+
 const PINK = '#F05063'
 
 const items = [
@@ -16,8 +18,9 @@ function TickerItems() {
     <>
       {items.map((item, i) => (
         <span key={i} className="inline-flex items-center">
-          <span className="font-semibold text-sm uppercase tracking-wide text-white whitespace-nowrap">
+          <span className="inline-flex items-center gap-1 font-semibold text-sm uppercase tracking-wide text-white whitespace-nowrap">
             {item}
+            <ChevronDown size={12} strokeWidth={2.5} className="text-white/50" />
           </span>
           <span className="mx-4 font-bold" style={{ color: PINK }} aria-hidden="true">•</span>
         </span>

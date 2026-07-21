@@ -8,6 +8,7 @@ import Programs from '../components/Programs'
 import CIECSection from '../components/CIEC'
 import Events from '../components/Events'
 import Testimonials from '../components/Testimonials'
+import Arcade from '../components/Arcade'
 import Donation from '../components/Donation'
 import Newsletter from '../components/Newsletter'
 
@@ -23,6 +24,7 @@ export default function Home() {
         <CIECSection />
         <Events />
         <Testimonials />
+        <Arcade />
         <Donation />
         <Newsletter />
       </main>
