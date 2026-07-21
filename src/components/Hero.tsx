@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { Sparkles, ArrowRight, Calendar } from 'lucide-react'
+import { Sparkles, ArrowRight, Calendar, Trophy } from 'lucide-react'
 
 const PINK  = '#F05063'
 const ORANGE = '#FBB040'
@@ -48,7 +48,7 @@ export default function Hero() {
             </div>
 
             {/* H1 */}
-            <h1 className="font-black text-4xl md:text-6xl leading-tight text-gray-900">
+            <h1 className="font-black text-4xl md:text-6xl leading-tight text-gray-900" style={{ fontWeight: 900 }}>
               Ta place.<br />
               Tes idées.<br />
               <span
@@ -103,12 +103,32 @@ export default function Hero() {
                 }}
               />
 
-              {/* Floating stat card — absolute bottom-left of image */}
+              {/* Floating card 1 — bottom-left */}
               <div
-                className="animate-float-slow absolute bottom-6 left-6 bg-white rounded-2xl px-6 py-4 shadow flex items-center gap-3 z-10"
+                className="animate-float-slow absolute bottom-6 left-6 bg-white rounded-2xl px-5 py-3 flex items-center gap-3 z-10"
+                style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.12)' }}
               >
-                <div className="font-black text-2xl" style={{ color: PINK }}>500+</div>
-                <div className="text-sm text-gray-500 leading-snug">jeunes/an</div>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: ORANGE }}>
+                  <Trophy size={20} strokeWidth={2} className="text-white" />
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs">+ de</div>
+                  <div className="font-bold text-gray-900 text-sm">500+ jeunes/an</div>
+                </div>
+              </div>
+
+              {/* Floating card 2 — top-right */}
+              <div
+                className="animate-float-slow absolute top-6 right-6 bg-white rounded-2xl px-5 py-3 flex items-center gap-3 z-10"
+                style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.12)', animationDelay: '2s' }}
+              >
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: BLUE }}>
+                  <Sparkles size={20} strokeWidth={2} className="text-white" />
+                </div>
+                <div>
+                  <div className="font-bold text-gray-900 text-sm">40+</div>
+                  <div className="text-gray-400 text-xs">activités/mois</div>
+                </div>
               </div>
             </div>
           </div>
