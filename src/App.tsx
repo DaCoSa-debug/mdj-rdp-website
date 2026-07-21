@@ -1,36 +1,33 @@
 import './styles/globals.css'
-import Header from './components/Header'
-import Hero from './components/Hero'
-import Marquee from './components/Marquee'
-import About from './components/About'
-import Programs from './components/Programs'
-import CIEC from './components/CIEC'
-import Events from './components/Events'
-import Testimonials from './components/Testimonials'
-import Donation from './components/Donation'
-import Newsletter from './components/Newsletter'
-import Footer from './components/Footer'
-import WhatsAppButton from './components/WhatsAppButton'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import Home from './pages/Home'
+import QuiSommesNous from './pages/QuiSommesNous'
+import Activites from './pages/Activites'
+import Evenements from './pages/Evenements'
+import Actualites from './pages/Actualites'
+import Galerie from './pages/Galerie'
+import CIEC from './pages/CIEC'
+import EspaceParents from './pages/EspaceParents'
+import Emplois from './pages/Emplois'
+import Arcade from './pages/Arcade'
+import Contact from './pages/Contact'
 
-function App() {
+export default function App() {
   return (
-    <>
-      <Header />
-      <main>
-        <Hero />
-        <Marquee />
-        <About />
-        <Programs />
-        <CIEC />
-        <Events />
-        <Testimonials />
-        <Donation />
-        <Newsletter />
-      </main>
-      <Footer />
-      <WhatsAppButton />
-    </>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/qui-sommes-nous" element={<QuiSommesNous />} />
+        <Route path="/activites" element={<Activites />} />
+        <Route path="/evenements" element={<Evenements />} />
+        <Route path="/actualites" element={<Actualites />} />
+        <Route path="/galerie" element={<Galerie />} />
+        <Route path="/ciec" element={<CIEC />} />
+        <Route path="/espace-parents" element={<EspaceParents />} />
+        <Route path="/emplois" element={<Emplois />} />
+        <Route path="/arcade" element={<Arcade />} />
+        <Route path="/contact" element={<Contact />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
-
-export default App

@@ -1,28 +1,53 @@
 import { useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
 import { Menu, Search, Moon, Heart } from 'lucide-react'
 import logo from '../assets/mdj-logo.png'
 
+const PINK = '#F05063'
+
 const navLinks = [
-  { label: 'Accueil', href: '#' },
-  { label: 'Qui sommes-nous', href: '#' },
-  { label: 'Activités', href: '#' },
-  { label: 'Événements', href: '#events' },
-  { label: 'Actualités', href: '#' },
-  { label: 'Galerie', href: '#' },
-  { label: 'CIEC', href: '#' },
-  { label: 'Parents', href: '#' },
+  { label: 'Accueil',        to: '/' },
+  { label: 'Qui sommes-nous', to: '/qui-sommes-nous' },
+  { label: 'Activités',      to: '/activites' },
+  { label: 'Événements',     to: '/evenements' },
+  { label: 'Actualités',     to: '/actualites' },
+  { label: 'Galerie',        to: '/galerie' },
+  { label: 'CIEC',           to: '/ciec' },
+  { label: 'Parents',        to: '/espace-parents' },
 ]
 
 const secondaryLinks = [
-  { label: 'CIEC', href: '#' },
-  { label: 'Parents', href: '#' },
-  { label: 'Emplois', href: '#' },
-  { label: 'Arcade', href: '#' },
-  { label: 'Contact', href: '#' },
+  { label: 'CIEC',    to: '/ciec' },
+  { label: 'Parents', to: '/espace-parents' },
+  { label: 'Emplois', to: '/emplois' },
+  { label: 'Arcade',  to: '/arcade' },
+  { label: 'Contact', to: '/contact' },
 ]
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { pathname } = useLocation()
+
+  const primaryClass = (to: string) =>
+    `px-3 py-3 text-sm font-medium transition-colors whitespace-nowrap ${
+      pathname === to
+        ? 'font-semibold'
+        : 'text-[#3D3D3D] hover:text-[#F05063]'
+    }`
+
+  const secondaryClass = (to: string) =>
+    `px-3 py-2.5 text-xs font-medium transition-colors whitespace-nowrap ${
+      pathname === to
+        ? 'font-semibold'
+        : 'text-gray-500 hover:text-[#F05063]'
+    }`
+
+  const mobileClass = (to: string, isPrimary: boolean) =>
+    `px-2 text-sm font-medium transition-colors ${
+      isPrimary
+        ? `py-3 border-b border-gray-100 last:border-0 ${pathname === to ? 'font-semibold' : 'text-[#3D3D3D] hover:text-[#F05063]'}`
+        : `py-2.5 text-xs ${pathname === to ? 'font-semibold' : 'text-gray-500 hover:text-[#F05063]'}`
+    }`
 
   return (
     <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/90 backdrop-blur-md">
@@ -43,13 +68,13 @@ export default function Header() {
           </div>
 
           {/* CENTER — logo */}
-          <a href="#" aria-label="Maison des jeunes de Rivière-des-Prairies — Accueil">
+          <Link to="/" aria-label="Maison des jeunes de Rivière-des-Prairies — Accueil">
             <img
               src={logo}
               alt="Maison des jeunes de Rivière-des-Prairies"
               className="h-11 md:h-20 w-auto object-contain"
             />
-          </a>
+          </Link>
 
           {/* RIGHT — search, dark mode, donation */}
           <div className="flex items-center justify-end gap-2">
@@ -70,7 +95,7 @@ export default function Header() {
             </button>
 
             <a
-              href="#"
+              href="/don"
               aria-label="Faire un don"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90"
               style={{ background: 'linear-gradient(135deg, #FBB040 0%, #F05063 100%)' }}
@@ -89,58 +114,62 @@ export default function Header() {
             {/* Primary nav */}
             <nav className="flex items-center gap-1" aria-label="Navigation principale">
               {navLinks.map((link) => (
-                <a
+                <Link
                   key={link.label}
-                  href={link.href}
-                  className="px-3 py-3 text-sm font-medium text-[#3D3D3D] hover:text-[#F05063] transition-colors whitespace-nowrap"
+                  to={link.to}
+                  className={primaryClass(link.to)}
+                  style={pathname === link.to ? { color: PINK } : undefined}
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
             </nav>
 
             {/* Secondary nav */}
             <nav className="flex items-center gap-1" aria-label="Navigation secondaire">
               {secondaryLinks.map((link) => (
-                <a
+                <Link
                   key={link.label}
-                  href={link.href}
-                  className="px-3 py-2.5 text-xs font-medium text-gray-500 hover:text-[#F05063] transition-colors whitespace-nowrap"
+                  to={link.to}
+                  className={secondaryClass(link.to)}
+                  style={pathname === link.to ? { color: PINK } : undefined}
                 >
                   {link.label}
-                </a>
+                </Link>
               ))}
             </nav>
           </div>
         </div>
       </div>
 
-      {/* MOBILE MENU — shown when hamburger is toggled */}
+      {/* MOBILE MENU */}
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-gray-100 bg-white/95 backdrop-blur-md">
           <nav className="mx-auto max-w-7xl px-4 py-3 flex flex-col" aria-label="Navigation mobile">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.label}
-                href={link.href}
+                to={link.to}
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-2 py-3 text-sm font-medium text-[#3D3D3D] hover:text-[#F05063] border-b border-gray-100 last:border-0 transition-colors"
+                className={mobileClass(link.to, true)}
+                style={pathname === link.to ? { color: PINK } : undefined}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
             {secondaryLinks.map((link) => (
-              <a
+              <Link
                 key={link.label}
-                href={link.href}
+                to={link.to}
                 onClick={() => setMobileMenuOpen(false)}
-                className="px-2 py-2.5 text-xs font-medium text-gray-500 hover:text-[#F05063] transition-colors"
+                className={mobileClass(link.to, false)}
+                style={pathname === link.to ? { color: PINK } : undefined}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
             <a
-              href="#"
+              href="/don"
               className="mt-3 mb-1 inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold text-white"
               style={{ background: 'linear-gradient(135deg, #FBB040 0%, #F05063 100%)' }}
             >

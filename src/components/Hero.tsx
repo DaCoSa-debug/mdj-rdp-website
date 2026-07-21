@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Sparkles, ArrowRight, Calendar } from 'lucide-react'
 
 const PINK  = '#F05063'
@@ -69,22 +70,22 @@ export default function Hero() {
 
             {/* CTA buttons */}
             <div className="mt-8 flex flex-wrap gap-4">
-              <a
-                href="#programs"
+              <Link
+                to="/activites"
                 className="inline-flex items-center gap-2 rounded-full px-8 py-4 font-semibold text-white shadow-lg transition-opacity hover:opacity-90"
                 style={{ background: `linear-gradient(135deg, ${ORANGE} 0%, ${PINK} 100%)` }}
               >
                 Découvrir les activités
                 <ArrowRight size={18} strokeWidth={2.5} />
-              </a>
-              <a
-                href="#events"
+              </Link>
+              <Link
+                to="/evenements"
                 className="inline-flex items-center gap-2 rounded-full border-2 bg-transparent px-8 py-4 font-semibold transition-colors hover:bg-pink-50"
                 style={{ borderColor: PINK, color: PINK }}
               >
                 <Calendar size={18} strokeWidth={2.5} />
                 Prochains événements
-              </a>
+              </Link>
             </div>
           </div>
 
