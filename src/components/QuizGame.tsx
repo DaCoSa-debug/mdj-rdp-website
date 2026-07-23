@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Trophy, Clock, CheckCircle, XCircle, RotateCcw, Play, Star } from 'lucide-react'
+import { Trophy, Clock, CheckCircle, XCircle, RotateCcw, Play, Star, ArrowLeft } from 'lucide-react'
 
 const PINK   = '#F05063'
 const ORANGE = '#FBB040'
@@ -62,34 +62,51 @@ function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5)
 }
 
+function loadPlayerName(): string {
+  try { return localStorage.getItem('mdj_quiz_player_name') || '' } catch { return '' }
+}
+function savePlayerName(name: string) {
+  try { localStorage.setItem('mdj_quiz_player_name', name) } catch { /* noop */ }
+}
+
+/* ── Shared outer shell ───────────────────────────────────────────── */
+function Shell({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="min-h-screen bg-[#1a1a1a] flex items-start justify-center relative overflow-hidden">
+      <div className="w-full max-w-md mx-auto min-h-screen flex flex-col">
+        {children}
+      </div>
+    </div>
+  )
+}
+
 export default function QuizGame() {
   const [gameState, setGameState]   = useState<GameState>('home')
+  const [scoresFrom, setScoresFrom] = useState<'home' | 'result'>('home')
   const [shuffled, setShuffled]     = useState<Question[]>([])
   const [current, setCurrent]       = useState(0)
   const [score, setScore]           = useState(0)
   const [timeLeft, setTimeLeft]     = useState(TIMER_DURATION)
   const [isAnswered, setIsAnswered] = useState(false)
   const [selected, setSelected]     = useState<number | null>(null)
+  const [playerName, setPlayerName] = useState<string>(loadPlayerName)
+  const [nameInput, setNameInput]   = useState<string>(loadPlayerName)
   const [localScores, setLocalScores] = useState<{ name: string; score: number }[]>(() => {
-    try {
-      return JSON.parse(localStorage.getItem('mdj_quiz_scores') || '[]')
-    } catch {
-      return []
-    }
+    try { return JSON.parse(localStorage.getItem('mdj_quiz_scores') || '[]') } catch { return [] }
   })
 
   /* ── Timer ── */
   useEffect(() => {
     if (gameState !== 'playing' || isAnswered) return
-    if (timeLeft <= 0) {
-      handleAnswer(-1)
-      return
-    }
+    if (timeLeft <= 0) { handleAnswer(-1); return }
     const id = setTimeout(() => setTimeLeft(t => t - 1), 1000)
     return () => clearTimeout(id)
   }, [gameState, isAnswered, timeLeft])
 
   function startGame() {
+    const name = nameInput.trim() || 'Joueur'
+    setPlayerName(name)
+    savePlayerName(name)
     setShuffled(shuffle(questions).slice(0, 6))
     setCurrent(0)
     setScore(0)
@@ -111,10 +128,7 @@ export default function QuizGame() {
   }
 
   function nextQuestion() {
-    if (current + 1 >= shuffled.length) {
-      endGame()
-      return
-    }
+    if (current + 1 >= shuffled.length) { endGame(); return }
     setCurrent(c => c + 1)
     setTimeLeft(TIMER_DURATION)
     setIsAnswered(false)
@@ -123,8 +137,9 @@ export default function QuizGame() {
 
   function endGame() {
     const finalScore = score
+    const name = playerName || 'Joueur'
     setLocalScores(prev => {
-      const next = [...prev, { name: 'Joueur', score: finalScore }]
+      const next = [...prev, { name, score: finalScore }]
         .sort((a, b) => b.score - a.score)
         .slice(0, 5)
       localStorage.setItem('mdj_quiz_scores', JSON.stringify(next))
@@ -133,25 +148,28 @@ export default function QuizGame() {
     setGameState('result')
   }
 
+  function goToScores(from: 'home' | 'result') {
+    setScoresFrom(from)
+    setGameState('scores')
+  }
+
   const q = shuffled[current]
-  const timerPct = (timeLeft / TIMER_DURATION) * 100
+  const timerPct   = (timeLeft / TIMER_DURATION) * 100
   const timerColor = timeLeft > 10 ? BLUE : timeLeft > 5 ? ORANGE : PINK
+  const isReturning = playerName !== ''
 
   /* ══════════════════════════════
      HOME SCREEN
   ══════════════════════════════ */
   if (gameState === 'home') {
     return (
-      <div
-        className="flex flex-col items-center justify-center min-h-screen px-6 py-12 text-white overflow-hidden"
-        style={{ background: 'linear-gradient(160deg, #1a1a1a 0%, #111111 100%)' }}
-      >
-        {/* Blobs */}
+      <Shell>
+        {/* Blobs — stay inside Shell's relative container */}
         <div aria-hidden className="pointer-events-none absolute top-20 left-10 w-64 h-64 rounded-full blur-3xl bg-[#FBB040]/15" />
         <div aria-hidden className="pointer-events-none absolute bottom-20 right-10 w-64 h-64 rounded-full blur-3xl bg-[#F05063]/15" />
         <div aria-hidden className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl bg-[#00AEEF]/10" />
 
-        <div className="relative z-10 flex flex-col items-center text-center max-w-md w-full">
+        <div className="relative z-10 flex flex-col items-center text-center flex-1 justify-center px-6 py-12 text-white">
           {/* Icon */}
           <div
             className="w-24 h-24 rounded-3xl flex items-center justify-center mb-8 shadow-2xl"
@@ -174,12 +192,12 @@ export default function QuizGame() {
               RDP
             </span>
           </h1>
-          <p className="text-white/60 text-base leading-relaxed mb-10">
+          <p className="text-white/60 text-base leading-relaxed mb-8">
             Teste tes connaissances sur Rivière-des-Prairies, la MDJ et la culture québécoise!
           </p>
 
           {/* Stats row */}
-          <div className="flex gap-6 mb-10">
+          <div className="flex gap-6 mb-8">
             {[
               { label: '6 questions', icon: Star },
               { label: '20 sec / question', icon: Clock },
@@ -192,23 +210,54 @@ export default function QuizGame() {
             ))}
           </div>
 
+          {/* Name input */}
+          <div className="w-full mb-4">
+            {isReturning && (
+              <p className="text-white/60 text-sm mb-2">Bonjour {playerName}! 👋</p>
+            )}
+            <input
+              type="text"
+              value={nameInput}
+              onChange={e => setNameInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && startGame()}
+              placeholder="Ton prénom…"
+              maxLength={20}
+              className="w-full min-h-[48px] rounded-2xl px-5 py-3 text-white font-semibold text-base placeholder-white/30 outline-none focus:ring-2"
+              style={{
+                background: 'rgba(255,255,255,0.07)',
+                border: '2px solid rgba(255,255,255,0.12)',
+                // @ts-ignore
+                '--tw-ring-color': ORANGE,
+              }}
+            />
+          </div>
+
           <button
             onClick={startGame}
-            className="flex items-center justify-center gap-3 w-full min-h-[56px] rounded-2xl font-bold text-lg text-white shadow-lg transition-opacity hover:opacity-90 active:scale-95"
+            className="flex items-center justify-center gap-3 w-full min-h-[56px] rounded-2xl font-bold text-lg text-white shadow-lg transition-opacity hover:opacity-90 active:scale-95 mb-4"
             style={{ background: `linear-gradient(135deg, ${ORANGE}, ${PINK})` }}
           >
             <Play size={22} />
-            Jouer
+            {isReturning ? 'Continuer →' : 'Commencer →'}
           </button>
 
+          {isReturning && (
+            <button
+              onClick={() => { setPlayerName(''); setNameInput(''); savePlayerName('') }}
+              className="text-white/30 text-xs underline underline-offset-2 hover:text-white/60 transition-colors mb-2"
+            >
+              Pas toi? Change de prénom
+            </button>
+          )}
+
           <button
-            onClick={() => setGameState('scores')}
-            className="mt-4 text-white/40 text-sm underline underline-offset-2 hover:text-white/60 transition-colors"
+            onClick={() => goToScores('home')}
+            className="mt-2 text-white/40 text-sm underline underline-offset-2 hover:text-white/60 transition-colors"
           >
             Voir le classement
           </button>
         </div>
-      </div>
+      </Shell>
     )
   }
 
@@ -217,12 +266,9 @@ export default function QuizGame() {
   ══════════════════════════════ */
   if (gameState === 'playing' && q) {
     return (
-      <div
-        className="flex flex-col min-h-screen text-white overflow-hidden"
-        style={{ background: '#1a1a1a' }}
-      >
+      <Shell>
         {/* Top bar */}
-        <div className="flex items-center justify-between px-4 pt-6 pb-4 shrink-0">
+        <div className="flex items-center justify-between px-4 pt-6 pb-4 shrink-0 text-white">
           <span className="text-white/50 text-sm font-semibold">
             {current + 1} / {shuffled.length}
           </span>
@@ -245,8 +291,8 @@ export default function QuizGame() {
           />
         </div>
 
-        {/* Question */}
-        <div className="flex-1 flex flex-col justify-between px-4 py-6">
+        {/* Question + answers */}
+        <div className="flex-1 flex flex-col justify-between px-4 py-6 text-white">
           <div
             className="rounded-3xl p-6 mb-6"
             style={{ background: 'rgba(255,255,255,0.05)' }}
@@ -257,26 +303,20 @@ export default function QuizGame() {
             <p className="font-bold text-xl leading-snug text-white">{q.question}</p>
           </div>
 
-          {/* Options */}
           <div className="flex flex-col gap-3">
             {q.options.map((opt, i) => {
-              let bg = 'rgba(255,255,255,0.06)'
-              let border = 'rgba(255,255,255,0.12)'
+              let bg        = 'rgba(255,255,255,0.06)'
+              let border    = 'rgba(255,255,255,0.12)'
               let textColor = 'rgba(255,255,255,0.85)'
 
               if (isAnswered) {
                 if (i === q.correct) {
-                  bg = 'rgba(34,197,94,0.15)'
-                  border = '#22c55e'
-                  textColor = '#22c55e'
+                  bg = 'rgba(34,197,94,0.15)'; border = '#22c55e'; textColor = '#22c55e'
                 } else if (i === selected && i !== q.correct) {
-                  bg = 'rgba(240,80,99,0.15)'
-                  border = PINK
-                  textColor = PINK
+                  bg = 'rgba(240,80,99,0.15)'; border = PINK; textColor = PINK
                 }
               } else if (selected === i) {
-                bg = 'rgba(251,176,64,0.15)'
-                border = ORANGE
+                bg = 'rgba(251,176,64,0.15)'; border = ORANGE
               }
 
               return (
@@ -285,11 +325,7 @@ export default function QuizGame() {
                   onClick={() => handleAnswer(i)}
                   disabled={isAnswered}
                   className="flex items-center gap-4 w-full min-h-[56px] rounded-2xl px-5 py-4 text-left font-semibold transition-all"
-                  style={{
-                    background: bg,
-                    border: `2px solid ${border}`,
-                    color: textColor,
-                  }}
+                  style={{ background: bg, border: `2px solid ${border}`, color: textColor }}
                 >
                   <span
                     className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0"
@@ -309,7 +345,6 @@ export default function QuizGame() {
             })}
           </div>
 
-          {/* Next / feedback */}
           {isAnswered && (
             <div className="mt-6">
               <p className="text-center text-sm font-semibold mb-4" style={{ color: selected === q.correct ? '#22c55e' : PINK }}>
@@ -329,7 +364,7 @@ export default function QuizGame() {
             </div>
           )}
         </div>
-      </div>
+      </Shell>
     )
   }
 
@@ -338,16 +373,13 @@ export default function QuizGame() {
   ══════════════════════════════ */
   if (gameState === 'result') {
     const maxScore = shuffled.length * 200
-    const pct = Math.round((score / maxScore) * 100)
+    const pct   = Math.round((score / maxScore) * 100)
     const medal = pct >= 80 ? '🥇' : pct >= 50 ? '🥈' : '🥉'
     const msg   = pct >= 80 ? 'Exceptionnel!' : pct >= 50 ? 'Bien joué!' : 'Continue à pratiquer!'
 
     return (
-      <div
-        className="flex flex-col items-center justify-center min-h-screen px-6 py-12 text-white overflow-hidden"
-        style={{ background: '#1a1a1a' }}
-      >
-        <div className="relative z-10 flex flex-col items-center text-center max-w-sm w-full">
+      <Shell>
+        <div className="flex flex-col items-center text-center flex-1 justify-center px-6 py-12 text-white">
           <span className="text-6xl mb-4">{medal}</span>
           <p className="text-white/40 text-xs uppercase tracking-widest mb-1 font-semibold">Résultat final</p>
           <h2 className="font-black text-4xl text-white mb-2">{msg}</h2>
@@ -381,21 +413,23 @@ export default function QuizGame() {
               Rejouer
             </button>
             <button
-              onClick={() => setGameState('scores')}
+              onClick={() => goToScores('result')}
               className="w-full min-h-[56px] rounded-2xl font-semibold text-white/70 transition-colors hover:text-white"
               style={{ background: 'rgba(255,255,255,0.06)', border: '2px solid rgba(255,255,255,0.1)' }}
             >
               Classement
             </button>
-            <button
-              onClick={() => setGameState('home')}
-              className="text-white/40 text-sm underline underline-offset-2 hover:text-white/60 transition-colors mt-2"
-            >
-              Retour à l'accueil
-            </button>
           </div>
+
+          {/* Name change link */}
+          <button
+            onClick={() => setGameState('home')}
+            className="text-white/30 text-xs text-center mt-6 cursor-pointer hover:text-white/60 underline underline-offset-2 transition-colors"
+          >
+            Changer de prénom?
+          </button>
         </div>
-      </div>
+      </Shell>
     )
   }
 
@@ -404,21 +438,29 @@ export default function QuizGame() {
   ══════════════════════════════ */
   if (gameState === 'scores') {
     return (
-      <div
-        className="flex flex-col items-center justify-center min-h-screen px-6 py-12 text-white overflow-hidden"
-        style={{ background: '#1a1a1a' }}
-      >
-        <div className="relative z-10 flex flex-col items-center text-center max-w-sm w-full">
-          <div
-            className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
-            style={{ background: `linear-gradient(135deg, ${ORANGE}, ${PINK})` }}
-          >
-            <Trophy size={32} className="text-white" />
+      <Shell>
+        <div className="flex flex-col flex-1 px-6 py-12 text-white">
+          {/* Header row with back button */}
+          <div className="flex items-center justify-between mb-8">
+            <button
+              onClick={() => setGameState(scoresFrom)}
+              className="flex items-center gap-1 text-white/40 text-sm hover:text-white/60 transition-colors"
+            >
+              <ArrowLeft size={16} />
+              Retour
+            </button>
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center"
+              style={{ background: `linear-gradient(135deg, ${ORANGE}, ${PINK})` }}
+            >
+              <Trophy size={20} className="text-white" />
+            </div>
           </div>
-          <p className="text-white/40 text-xs uppercase tracking-widest mb-1 font-semibold">MDJ ARCADE</p>
-          <h2 className="font-black text-3xl text-white mb-8">Classement</h2>
 
-          <div className="w-full flex flex-col gap-3 mb-10">
+          <p className="text-white/40 text-xs uppercase tracking-widest mb-1 font-semibold text-center">MDJ ARCADE</p>
+          <h2 className="font-black text-3xl text-white mb-8 text-center">Classement</h2>
+
+          <div className="flex flex-col gap-3 flex-1">
             {localScores.length === 0 ? (
               <p className="text-white/40 text-center mt-10">
                 Aucun joueur enregistré. Joue pour apparaître ici!
@@ -433,7 +475,10 @@ export default function QuizGame() {
                   <span
                     className="font-black text-xl w-8 shrink-0"
                     style={{
-                      color: i === 0 ? ORANGE : i === 1 ? 'rgba(255,255,255,0.6)' : i === 2 ? 'rgba(255,255,255,0.4)' : 'rgba(255,255,255,0.2)',
+                      color: i === 0 ? ORANGE
+                           : i === 1 ? 'rgba(255,255,255,0.6)'
+                           : i === 2 ? 'rgba(255,255,255,0.4)'
+                           : 'rgba(255,255,255,0.2)',
                     }}
                   >
                     {i + 1}
@@ -447,14 +492,14 @@ export default function QuizGame() {
 
           <button
             onClick={() => setGameState('home')}
-            className="flex items-center justify-center gap-2 w-full min-h-[56px] rounded-2xl font-bold text-white transition-opacity hover:opacity-90"
+            className="flex items-center justify-center gap-2 w-full min-h-[56px] rounded-2xl font-bold text-white transition-opacity hover:opacity-90 mt-8"
             style={{ background: `linear-gradient(135deg, ${ORANGE}, ${PINK})` }}
           >
             <Play size={18} />
             Jouer
           </button>
         </div>
-      </div>
+      </Shell>
     )
   }
 
