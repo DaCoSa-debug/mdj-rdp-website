@@ -3,9 +3,9 @@ import { Gamepad2, Trophy, Sparkles } from 'lucide-react'
 
 const ORANGE = '#FBB040'
 const PINK   = '#F05063'
-const BLUE   = '#00AEEF'
+const BLUE   = '#29ABE2'
 
-const gradientBorder = 'linear-gradient(135deg, #FBB040, #F05063, #00AEEF)'
+const gradientBorder = 'linear-gradient(135deg, #FBB040, #F05063, #29ABE2)'
 
 const games = [
   { Icon: Gamepad2, color: ORANGE, title: 'Pac-MDJ',    tag: 'Arcade classique' },
@@ -15,7 +15,7 @@ const games = [
 
 export default function Arcade() {
   return (
-    <section className="py-20" style={{ background: '#1a1a1a' }}>
+    <section className="py-20" style={{ background: '#231F20' }}>
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-12">
 
@@ -29,7 +29,7 @@ export default function Arcade() {
               Apprends.<br />
               <span
                 style={{
-                  background: `linear-gradient(135deg, ${ORANGE}, ${PINK}, ${BLUE})`,
+                  background: `linear-gradient(135deg, ${ORANGE}, ${PINK}, ${BLUE})`,  /* #FBB040 → #F05063 → #29ABE2 */
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                   backgroundClip: 'text',
@@ -58,7 +58,7 @@ export default function Arcade() {
                 className="p-[2px] rounded-2xl"
                 style={{ background: gradientBorder }}
               >
-                <div className="bg-[#2a2a2a] rounded-[calc(1rem-2px)] p-5 flex items-center gap-4">
+                <div className="bg-[#2a2020] rounded-[calc(1rem-2px)] p-5 flex items-center gap-4">
                   <div className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(255,255,255,0.10)' }}>
                     <Icon size={28} strokeWidth={1.5} style={{ color }} />
                   </div>

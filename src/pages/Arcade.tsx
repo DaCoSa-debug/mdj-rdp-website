@@ -7,7 +7,7 @@ export default function Arcade() {
   return (
     <>
       <Header />
-      <section className="bg-[#1a1a1a] min-h-screen">
+      <section className="bg-[#231F20] min-h-screen">
         <QuizGame />
       </section>
       <Footer />
