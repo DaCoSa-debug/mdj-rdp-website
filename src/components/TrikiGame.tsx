@@ -1,0 +1,112 @@
+import { useState, useEffect } from 'react'
+import { saveScore, getTopScores } from '../lib/arcadeScores'
+import { checkWinner, getBestAiMove } from '../lib/trikiLogic'
+import type { BoardCell, GameSymbol } from '../lib/trikiLogic'
+import TrikiModeScreen from './TrikiModeScreen'
+import TrikiBoardScreen from './TrikiBoardScreen'
+
+type Mode = 'friend' | 'ai'
+type WinState = GameSymbol | 'draw' | null
+
+const EMPTY_BOARD: BoardCell[] = Array(9).fill(null)
+
+function loadPlayerName(): string {
+  try { return localStorage.getItem('mdj_quiz_player_name') || '' } catch { return '' }
+}
+
+function loadCumulativeWins(name: string): number {
+  if (!name) return 0
+  const entry = getTopScores('triki', 100).find(s => s.name === name)
+  return entry?.score ?? 0
+}
+
+interface TrikiGameProps {
+  onExit?: () => void
+}
+
+export default function TrikiGame({ onExit }: TrikiGameProps) {
+  const [board, setBoard] = useState<BoardCell[]>([...EMPTY_BOARD])
+  const [currentPlayer, setCurrentPlayer] = useState<GameSymbol>('X')
+  const [winner, setWinner] = useState<WinState>(null)
+  const [winningLine, setWinningLine] = useState<number[] | null>(null)
+  const [mode, setMode] = useState<Mode | null>(null)
+  const [scores, setScores] = useState<Record<GameSymbol, number>>({ X: 0, O: 0 })
+  const [playerName] = useState<string>(loadPlayerName)
+  const [cumulativeWins, setCumulativeWins] = useState<number>(0)
+
+  useEffect(() => {
+    setCumulativeWins(loadCumulativeWins(playerName))
+    return () => undefined
+  }, [playerName])
+
+  useEffect(() => {
+    if (mode !== 'ai' || currentPlayer !== 'O' || winner !== null) return () => undefined
+    const timer = setTimeout(() => triggerAiMove(), 600)
+    return () => clearTimeout(timer)
+  }, [mode, currentPlayer, winner, board])
+
+  function persistWin(): void {
+    const newWins = cumulativeWins + 1
+    setCumulativeWins(newWins)
+    saveScore({ name: playerName || 'Anonyme', score: newWins, game: 'triki', date: new Date().toISOString() })
+  }
+
+  function applyMove(newBoard: BoardCell[], player: GameSymbol): void {
+    setBoard(newBoard)
+    const result = checkWinner(newBoard)
+    if (result) {
+      setWinner(result.winner)
+      setWinningLine([...result.line])
+      setScores(s => ({ ...s, [result.winner]: s[result.winner] + 1 }))
+      if (result.winner === 'X') persistWin()
+      return
+    }
+    if (newBoard.every(Boolean)) { setWinner('draw'); return }
+    setCurrentPlayer(player === 'X' ? 'O' : 'X')
+  }
+
+  function handleCellClick(index: number): void {
+    if (board[index] || winner) return
+    if (mode === 'ai' && currentPlayer === 'O') return
+    const newBoard = [...board] as BoardCell[]
+    newBoard[index] = currentPlayer
+    applyMove(newBoard, currentPlayer)
+  }
+
+  function triggerAiMove(): void {
+    const move = getBestAiMove(board)
+    if (move === undefined) return
+    const newBoard = [...board] as BoardCell[]
+    newBoard[move] = 'O'
+    applyMove(newBoard, 'O')
+  }
+
+  function resetBoard(): void {
+    setBoard([...EMPTY_BOARD])
+    setWinner(null)
+    setWinningLine(null)
+    setCurrentPlayer('X')
+  }
+
+  function handleChangeMode(): void {
+    resetBoard()
+    setScores({ X: 0, O: 0 })
+    setMode(null)
+  }
+
+  if (!mode) return <TrikiModeScreen onSelectMode={m => { setMode(m); resetBoard() }} />
+
+  return (
+    <TrikiBoardScreen
+      board={board}
+      currentPlayer={currentPlayer}
+      winner={winner}
+      winningLine={winningLine}
+      scores={scores}
+      onCellClick={handleCellClick}
+      onReplay={resetBoard}
+      onChangeMode={handleChangeMode}
+      onLeaderboard={() => onExit?.()}
+    />
+  )
+}

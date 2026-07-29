@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Trophy, Clock, CheckCircle, XCircle, RotateCcw, ArrowLeft } from 'lucide-react'
+import { saveScore, getTopScores } from '../lib/arcadeScores'
+import type { GameScore } from '../lib/arcadeScores'
 
 /* ── Brand palette ─────────────────────────────────────────────── */
 const BRAND = {
@@ -370,9 +372,7 @@ export default function QuizGame() {
   const [selected, setSelected]           = useState<number | null>(null)
   const [playerName, setPlayerName]       = useState<string>(loadPlayerName)
   const [nameInput, setNameInput]         = useState<string>(loadPlayerName)
-  const [localScores, setLocalScores]     = useState<{ name: string; score: number; cat: string }[]>(() => {
-    try { return JSON.parse(localStorage.getItem('mdj_quiz_scores') || '[]') } catch { return [] }
-  })
+  const [localScores, setLocalScores]     = useState<GameScore[]>(() => getTopScores('quiz', 5))
 
   /* ── Timer ── */
   useEffect(() => {
@@ -420,14 +420,8 @@ export default function QuizGame() {
   function endGame() {
     const finalScore = score
     const name = playerName || 'Joueur'
-    const catLabel = categories.find(c => c.id === selectedCat)?.label ?? ''
-    setLocalScores(prev => {
-      const next = [...prev, { name, score: finalScore, cat: catLabel }]
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 5)
-      localStorage.setItem('mdj_quiz_scores', JSON.stringify(next))
-      return next
-    })
+    saveScore({ name, score: finalScore, game: 'quiz', date: new Date().toISOString() })
+    setLocalScores(getTopScores('quiz', 5))
     setGameState('result')
   }
 
@@ -735,7 +729,7 @@ export default function QuizGame() {
             ) : (
               localScores.map((entry, i) => (
                 <div
-                  key={i}
+                  key={`quiz-score-${entry.name}-${i}`}
                   className="flex items-center gap-4 rounded-2xl px-5 py-4 min-h-[56px]"
                   style={{ background: 'rgba(255,255,255,0.08)' }}
                 >
@@ -743,7 +737,6 @@ export default function QuizGame() {
                     {i + 1}
                   </span>
                   <span className="font-semibold text-white flex-1 text-left">{entry.name}</span>
-                  {entry.cat && <span className="text-white/30 text-xs mr-2 hidden sm:block">{entry.cat}</span>}
                   <span className="font-bold text-sm tabular-nums" style={{ color: BRAND.yellow }}>
                     {entry.score} pts
                   </span>
