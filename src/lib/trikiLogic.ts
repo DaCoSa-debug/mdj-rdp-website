@@ -1,5 +1,6 @@
 export type BoardCell = 'X' | 'O' | null
 export type GameSymbol = 'X' | 'O'
+export type Difficulty = 'facile' | 'moyen' | 'difficile'
 
 export interface WinResult {
   winner: GameSymbol
@@ -38,6 +39,17 @@ function emptyIndices(board: BoardCell[]): number[] {
 
 function randomFrom(arr: number[]): number {
   return arr[Math.floor(Math.random() * arr.length)]
+}
+
+export function getRandomMove(board: BoardCell[]): number | undefined {
+  const empty = emptyIndices(board)
+  return empty.length ? randomFrom(empty) : undefined
+}
+
+export function getAiMove(board: BoardCell[], difficulty: Difficulty): number | undefined {
+  if (difficulty === 'difficile') return getBestAiMove(board)
+  const randomThreshold = difficulty === 'facile' ? 0.8 : 0.5
+  return Math.random() < randomThreshold ? getRandomMove(board) : getBestAiMove(board)
 }
 
 export function getBestAiMove(board: BoardCell[]): number | undefined {

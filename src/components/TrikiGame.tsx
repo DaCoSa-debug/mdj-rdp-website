@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { saveScore, getTopScores } from '../lib/arcadeScores'
-import { checkWinner, getBestAiMove } from '../lib/trikiLogic'
-import type { BoardCell, GameSymbol } from '../lib/trikiLogic'
+import { checkWinner, getAiMove } from '../lib/trikiLogic'
+import type { BoardCell, GameSymbol, Difficulty } from '../lib/trikiLogic'
 import TrikiModeScreen from './TrikiModeScreen'
 import TrikiBoardScreen from './TrikiBoardScreen'
 
@@ -30,6 +30,7 @@ export default function TrikiGame({ onExit }: TrikiGameProps) {
   const [winner, setWinner] = useState<WinState>(null)
   const [winningLine, setWinningLine] = useState<number[] | null>(null)
   const [mode, setMode] = useState<Mode | null>(null)
+  const [difficulty, setDifficulty] = useState<Difficulty>('facile')
   const [scores, setScores] = useState<Record<GameSymbol, number>>({ X: 0, O: 0 })
   const [playerName] = useState<string>(loadPlayerName)
   const [cumulativeWins, setCumulativeWins] = useState<number>(0)
@@ -43,7 +44,7 @@ export default function TrikiGame({ onExit }: TrikiGameProps) {
     if (mode !== 'ai' || currentPlayer !== 'O' || winner !== null) return () => undefined
     const timer = setTimeout(() => triggerAiMove(), 600)
     return () => clearTimeout(timer)
-  }, [mode, currentPlayer, winner, board])
+  }, [mode, currentPlayer, winner, board, difficulty])
 
   function persistWin(): void {
     const newWins = cumulativeWins + 1
@@ -74,7 +75,7 @@ export default function TrikiGame({ onExit }: TrikiGameProps) {
   }
 
   function triggerAiMove(): void {
-    const move = getBestAiMove(board)
+    const move = getAiMove(board, difficulty)
     if (move === undefined) return
     const newBoard = [...board] as BoardCell[]
     newBoard[move] = 'O'
@@ -94,7 +95,18 @@ export default function TrikiGame({ onExit }: TrikiGameProps) {
     setMode(null)
   }
 
-  if (!mode) return <TrikiModeScreen onSelectMode={m => { setMode(m); resetBoard() }} />
+  function handleSelectAi(selectedDifficulty: Difficulty): void {
+    setDifficulty(selectedDifficulty)
+    setMode('ai')
+    resetBoard()
+  }
+
+  if (!mode) return (
+    <TrikiModeScreen
+      onSelectMode={m => { setMode(m); resetBoard() }}
+      onSelectAi={handleSelectAi}
+    />
+  )
 
   return (
     <TrikiBoardScreen
