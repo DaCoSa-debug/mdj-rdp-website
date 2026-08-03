@@ -20,11 +20,7 @@ function loadCumulativeWins(name: string): number {
   return entry?.score ?? 0
 }
 
-interface TrikiGameProps {
-  onExit?: () => void
-}
-
-export default function TrikiGame({ onExit }: TrikiGameProps) {
+export default function TrikiGame() {
   const [board, setBoard] = useState<BoardCell[]>([...EMPTY_BOARD])
   const [currentPlayer, setCurrentPlayer] = useState<GameSymbol>('X')
   const [winner, setWinner] = useState<WinState>(null)
@@ -118,7 +114,6 @@ export default function TrikiGame({ onExit }: TrikiGameProps) {
       onCellClick={handleCellClick}
       onReplay={resetBoard}
       onChangeMode={handleChangeMode}
-      onLeaderboard={() => onExit?.()}
     />
   )
 }

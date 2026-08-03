@@ -13,7 +13,6 @@ interface BoardScreenProps {
   onCellClick: (index: number) => void
   onReplay: () => void
   onChangeMode: () => void
-  onLeaderboard: () => void
 }
 
 function TurnIndicator({ currentPlayer, winner }: { currentPlayer: GameSymbol; winner: GameSymbol | 'draw' | null }) {
@@ -39,7 +38,7 @@ function BoardCellItem({ value, position, isWinning, onClick }: CellProps) {
   )
 }
 
-export default function TrikiBoardScreen({ board, currentPlayer, winner, winningLine, scores, onCellClick, onReplay, onChangeMode, onLeaderboard }: BoardScreenProps) {
+export default function TrikiBoardScreen({ board, currentPlayer, winner, winningLine, scores, onCellClick, onReplay, onChangeMode }: BoardScreenProps) {
   return (
     <div className="bg-[#231F20] min-h-screen flex flex-col px-6 pt-8">
       <div className="flex justify-center gap-8 mb-6">
@@ -74,9 +73,6 @@ export default function TrikiBoardScreen({ board, currentPlayer, winner, winning
         </button>
         <button onClick={onChangeMode} className="text-white/40 text-sm hover:text-white/60 transition-colors text-center">
           Changer de mode
-        </button>
-        <button onClick={onLeaderboard} className="text-white/40 text-sm hover:text-white/60 transition-colors text-center">
-          Voir le classement
         </button>
       </div>
     </div>

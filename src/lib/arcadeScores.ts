@@ -41,3 +41,22 @@ export function getTopScores(game: string, limit: number): GameScore[] {
 export function getTopAllScores(limit: number): GameScore[] {
   return loadAllScores().slice(0, limit)
 }
+
+export function getPlayerName(): string {
+  try { return localStorage.getItem('mdj_quiz_player_name') ?? '' } catch { return '' }
+}
+
+export function setPlayerName(name: string): void {
+  try { localStorage.setItem('mdj_quiz_player_name', name) } catch { /* noop */ }
+}
+
+export function isNameTaken(name: string): boolean {
+  const lower = name.toLowerCase()
+  return loadAllScores().some(s => s.name.toLowerCase() === lower)
+}
+
+export function suggestAlternativeName(name: string): string {
+  let counter = 2
+  while (isNameTaken(`${name}${counter}`)) counter++
+  return `${name}${counter}`
+}

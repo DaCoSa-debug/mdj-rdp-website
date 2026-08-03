@@ -1,5 +1,8 @@
-import { getTopAllScores } from '../lib/arcadeScores'
+import { useState } from 'react'
+import { Pencil } from 'lucide-react'
+import { getTopAllScores, getPlayerName, setPlayerName } from '../lib/arcadeScores'
 import type { GameScore } from '../lib/arcadeScores'
+import NameEditor from './NameEditor'
 
 const GRADIENT = 'linear-gradient(135deg, #FBB040, #F05063, #29ABE2)'
 const RANK_COLORS = ['#FBB040', 'rgba(255,255,255,0.6)', 'rgba(255,255,255,0.6)', 'rgba(255,255,255,0.6)', 'rgba(255,255,255,0.6)']
@@ -14,9 +17,10 @@ interface ArcadeHubProps {
   onSelectGame: (game: 'quiz' | 'triki') => void
 }
 
-interface GameCardProps { emoji: string; title: string; desc: string; onPlay: () => void }
+interface GameCardProps { emoji: string; title: string; desc: string; onPlay: () => void; disabled?: boolean }
 
-function GameCard({ emoji, title, desc, onPlay }: GameCardProps) {
+function GameCard({ emoji, title, desc, onPlay, disabled = false }: GameCardProps) {
+  const buttonClass = `mt-6 w-full min-h-[48px] rounded-2xl font-bold text-white transition-opacity ${disabled ? 'opacity-40 cursor-not-allowed' : 'hover:opacity-90'}`
   return (
     <div className="p-[2px] rounded-3xl" style={{ background: GRADIENT }}>
       <div className="bg-[#2a2020] rounded-[calc(1.5rem-2px)] p-8 text-center">
@@ -24,13 +28,34 @@ function GameCard({ emoji, title, desc, onPlay }: GameCardProps) {
         <h3 className="font-black text-2xl text-white mt-3">{title}</h3>
         <p className="text-white/60 text-sm mt-2">{desc}</p>
         <button
-          onClick={onPlay}
-          className="mt-6 w-full min-h-[48px] rounded-2xl font-bold text-white transition-opacity hover:opacity-90"
+          onClick={disabled ? undefined : onPlay}
+          disabled={disabled}
+          className={buttonClass}
           style={{ background: 'linear-gradient(135deg, #FBB040, #F05063)' }}
         >
           Jouer
         </button>
       </div>
+    </div>
+  )
+}
+
+interface PlayerNameBarProps { name: string; onEdit: () => void }
+
+function PlayerNameBar({ name, onEdit }: PlayerNameBarProps) {
+  if (!name) {
+    return (
+      <button onClick={onEdit} className="bg-white/10 rounded-full px-6 py-2 text-white/80 text-sm hover:bg-white/20 transition-colors">
+        Définir mon nom
+      </button>
+    )
+  }
+  return (
+    <div className="flex items-center justify-center gap-2">
+      <span className="text-white font-semibold">Joueur: {name}</span>
+      <button onClick={onEdit} aria-label="Modifier le nom">
+        <Pencil className="w-4 h-4 text-white/60 hover:text-white transition-colors" />
+      </button>
     </div>
   )
 }
@@ -64,6 +89,24 @@ function GlobalLeaderboard() {
 }
 
 export default function ArcadeHub({ onSelectGame }: ArcadeHubProps) {
+  const [playerName, setLocalName] = useState<string>(getPlayerName)
+  const [editingName, setEditingName] = useState(false)
+
+  function handleSaveName(newName: string): void {
+    setPlayerName(newName)
+    setLocalName(newName)
+    setEditingName(false)
+  }
+
+  if (editingName) {
+    return (
+      <div className="bg-[#231F20] min-h-screen flex flex-col items-center justify-center px-6">
+        <h2 className="font-black text-3xl text-white mb-8">Ton prénom</h2>
+        <NameEditor currentName={playerName} onSave={handleSaveName} onCancel={() => setEditingName(false)} />
+      </div>
+    )
+  }
+
   return (
     <div className="bg-[#231F20] min-h-screen">
       <div className="text-center pt-10 px-6">
@@ -74,10 +117,21 @@ export default function ArcadeHub({ onSelectGame }: ArcadeHubProps) {
           </span>
         </h1>
         <p className="text-white/60 mt-2">Choisis ton jeu!</p>
+        <div className="mt-4">
+          <PlayerNameBar name={playerName} onEdit={() => setEditingName(true)} />
+        </div>
+        {!playerName && <p className="text-white/40 text-sm mt-3">↑ Définis ton nom pour jouer</p>}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-2xl mx-auto p-6 mt-8">
         {GAME_CARDS.map(game => (
-          <GameCard key={game.id} emoji={game.emoji} title={game.title} desc={game.desc} onPlay={() => onSelectGame(game.id)} />
+          <GameCard
+            key={game.id}
+            emoji={game.emoji}
+            title={game.title}
+            desc={game.desc}
+            onPlay={() => onSelectGame(game.id)}
+            disabled={!playerName}
+          />
         ))}
       </div>
       <GlobalLeaderboard />

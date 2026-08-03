@@ -31,7 +31,7 @@ export default function Arcade() {
         {selectedGame !== null && <BackButton onBack={exitGame} />}
         {selectedGame === null && <ArcadeHub onSelectGame={setSelectedGame} />}
         {selectedGame === 'quiz' && <QuizGame />}
-        {selectedGame === 'triki' && <TrikiGame onExit={exitGame} />}
+        {selectedGame === 'triki' && <TrikiGame />}
       </section>
       <Footer />
       <WhatsAppButton />
