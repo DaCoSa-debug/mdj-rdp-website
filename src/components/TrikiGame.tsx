@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { saveScore, getTopScores } from '../lib/arcadeScores'
+import { addPoints, getTopRanking, getSessionName } from '../lib/arcadeScores'
 import { checkWinner, getAiMove } from '../lib/trikiLogic'
 import type { BoardCell, GameSymbol, Difficulty } from '../lib/trikiLogic'
 import TrikiModeScreen from './TrikiModeScreen'
@@ -10,14 +10,10 @@ type WinState = GameSymbol | 'draw' | null
 
 const EMPTY_BOARD: BoardCell[] = Array(9).fill(null)
 
-function loadPlayerName(): string {
-  try { return localStorage.getItem('mdj_quiz_player_name') || '' } catch { return '' }
-}
-
-function loadCumulativeWins(name: string): number {
+function loadCumulativeScore(name: string): number {
   if (!name) return 0
-  const entry = getTopScores('triki', 100).find(s => s.name === name)
-  return entry?.score ?? 0
+  const entry = getTopRanking(100).find(s => s.name === name)
+  return entry?.totalScore ?? 0
 }
 
 export default function TrikiGame() {
@@ -28,11 +24,11 @@ export default function TrikiGame() {
   const [mode, setMode] = useState<Mode | null>(null)
   const [difficulty, setDifficulty] = useState<Difficulty>('facile')
   const [scores, setScores] = useState<Record<GameSymbol, number>>({ X: 0, O: 0 })
-  const [playerName] = useState<string>(loadPlayerName)
+  const [playerName] = useState<string>(getSessionName)
   const [cumulativeWins, setCumulativeWins] = useState<number>(0)
 
   useEffect(() => {
-    setCumulativeWins(loadCumulativeWins(playerName))
+    setCumulativeWins(loadCumulativeScore(playerName))
     return () => undefined
   }, [playerName])
 
@@ -43,9 +39,8 @@ export default function TrikiGame() {
   }, [mode, currentPlayer, winner, board, difficulty])
 
   function persistWin(): void {
-    const newWins = cumulativeWins + 1
-    setCumulativeWins(newWins)
-    saveScore({ name: playerName || 'Anonyme', score: newWins, game: 'triki', date: new Date().toISOString() })
+    setCumulativeWins(w => w + 1)
+    addPoints(playerName || 'Anonyme', 1)
   }
 
   function applyMove(newBoard: BoardCell[], player: GameSymbol): void {
@@ -114,6 +109,8 @@ export default function TrikiGame() {
       onCellClick={handleCellClick}
       onReplay={resetBoard}
       onChangeMode={handleChangeMode}
+      playerName={playerName}
+      cumulativeScore={cumulativeWins}
     />
   )
 }

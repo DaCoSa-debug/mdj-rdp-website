@@ -1,62 +1,99 @@
-export interface GameScore {
+export interface PlayerRank {
   name: string
-  score: number
-  game: string
-  date: string
+  totalScore: number
+  lastUpdated: string
 }
 
-function persistList(key: string, list: GameScore[]): void {
+const RANKING_KEY = 'mdj-arcade-ranking'
+const SESSION_KEY = 'mdj-arcade-session'
+const RESET_KEY = 'mdj-arcade-last-reset'
+
+function persistRanking(list: PlayerRank[]): void {
   try {
-    const sorted = [...list].sort((a, b) => b.score - a.score).slice(0, 20)
-    localStorage.setItem(key, JSON.stringify(sorted))
+    const sorted = [...list].sort((a, b) => b.totalScore - a.totalScore)
+    localStorage.setItem(RANKING_KEY, JSON.stringify(sorted))
   } catch { /* noop */ }
 }
 
-function parseStoredList(key: string): GameScore[] {
+function findPlayerIndex(list: PlayerRank[], name: string): number {
+  const lower = name.toLowerCase()
+  return list.findIndex(p => p.name.toLowerCase() === lower)
+}
+
+export function getLastSundayReset(): Date {
+  const now = new Date()
+  const dayOfWeek = now.getDay()
+  const isSundayEvening = dayOfWeek === 0 && now.getHours() >= 20
+  const daysBack = isSundayEvening ? 0 : dayOfWeek === 0 ? 7 : dayOfWeek
+  const sunday = new Date(now)
+  sunday.setDate(now.getDate() - daysBack)
+  sunday.setHours(20, 0, 0, 0)
+  return sunday
+}
+
+export function checkAndApplyWeeklyReset(): void {
   try {
-    const raw = localStorage.getItem(key) || '[]'
-    return (JSON.parse(raw) as GameScore[]).sort((a, b) => b.score - a.score)
+    const lastReset = localStorage.getItem(RESET_KEY)
+    const resetDate = getLastSundayReset()
+    if (!lastReset || new Date(lastReset) < resetDate) {
+      localStorage.setItem(RANKING_KEY, JSON.stringify([]))
+      localStorage.setItem(RESET_KEY, resetDate.toISOString())
+    }
+  } catch { /* noop */ }
+}
+
+export function loadRanking(): PlayerRank[] {
+  checkAndApplyWeeklyReset()
+  try {
+    const raw = localStorage.getItem(RANKING_KEY) || '[]'
+    const list = JSON.parse(raw) as PlayerRank[]
+    return list.sort((a, b) => b.totalScore - a.totalScore)
   } catch { return [] }
 }
 
-export function loadScores(game: string): GameScore[] {
-  return parseStoredList(`mdj-arcade-${game}`)
-}
-
-export function loadAllScores(): GameScore[] {
-  return parseStoredList('mdj-arcade-all')
-}
-
-export function saveScore(entry: GameScore): void {
+export function addPoints(name: string, points: number): void {
   try {
-    persistList(`mdj-arcade-${entry.game}`, [...loadScores(entry.game), entry])
-    persistList('mdj-arcade-all', [...loadAllScores(), entry])
+    const list = loadRanking()
+    const index = findPlayerIndex(list, name)
+    const now = new Date().toISOString()
+    if (index >= 0) {
+      list[index] = { ...list[index], totalScore: list[index].totalScore + points, lastUpdated: now }
+    } else {
+      list.push({ name, totalScore: points, lastUpdated: now })
+    }
+    persistRanking(list)
   } catch { /* noop */ }
 }
 
-export function getTopScores(game: string, limit: number): GameScore[] {
-  return loadScores(game).slice(0, limit)
+export function getTopRanking(limit: number): PlayerRank[] {
+  return loadRanking().slice(0, limit)
 }
 
-export function getTopAllScores(limit: number): GameScore[] {
-  return loadAllScores().slice(0, limit)
+export function isNameReserved(name: string): boolean {
+  return findPlayerIndex(loadRanking(), name) >= 0
 }
 
-export function getPlayerName(): string {
-  try { return localStorage.getItem('mdj_quiz_player_name') ?? '' } catch { return '' }
-}
-
-export function setPlayerName(name: string): void {
-  try { localStorage.setItem('mdj_quiz_player_name', name) } catch { /* noop */ }
-}
-
-export function isNameTaken(name: string): boolean {
-  const lower = name.toLowerCase()
-  return loadAllScores().some(s => s.name.toLowerCase() === lower)
-}
-
-export function suggestAlternativeName(name: string): string {
+export function suggestAvailableName(name: string): string {
   let counter = 2
-  while (isNameTaken(`${name}${counter}`)) counter++
+  while (isNameReserved(`${name}${counter}`)) counter++
   return `${name}${counter}`
+}
+
+export function getSessionName(): string {
+  try { return localStorage.getItem(SESSION_KEY) ?? '' } catch { return '' }
+}
+
+export function startSession(name: string): void {
+  try {
+    localStorage.setItem(SESSION_KEY, name)
+    const list = loadRanking()
+    if (findPlayerIndex(list, name) < 0) {
+      list.push({ name, totalScore: 0, lastUpdated: new Date().toISOString() })
+      persistRanking(list)
+    }
+  } catch { /* noop */ }
+}
+
+export function endSession(): void {
+  try { localStorage.removeItem(SESSION_KEY) } catch { /* noop */ }
 }

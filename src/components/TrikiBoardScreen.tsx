@@ -1,4 +1,5 @@
 import type { BoardCell, GameSymbol } from '../lib/trikiLogic'
+import ShareScore from './ShareScore'
 
 const PINK = '#F05063'
 const BLUE = '#29ABE2'
@@ -13,6 +14,8 @@ interface BoardScreenProps {
   onCellClick: (index: number) => void
   onReplay: () => void
   onChangeMode: () => void
+  playerName: string
+  cumulativeScore: number
 }
 
 function TurnIndicator({ currentPlayer, winner }: { currentPlayer: GameSymbol; winner: GameSymbol | 'draw' | null }) {
@@ -38,7 +41,7 @@ function BoardCellItem({ value, position, isWinning, onClick }: CellProps) {
   )
 }
 
-export default function TrikiBoardScreen({ board, currentPlayer, winner, winningLine, scores, onCellClick, onReplay, onChangeMode }: BoardScreenProps) {
+export default function TrikiBoardScreen({ board, currentPlayer, winner, winningLine, scores, onCellClick, onReplay, onChangeMode, playerName, cumulativeScore }: BoardScreenProps) {
   return (
     <div className="bg-[#231F20] min-h-screen flex flex-col px-6 pt-8">
       <div className="flex justify-center gap-8 mb-6">
@@ -63,7 +66,12 @@ export default function TrikiBoardScreen({ board, currentPlayer, winner, winning
           />
         ))}
       </div>
-      <div className="flex flex-col gap-3 mt-8 max-w-xs mx-auto w-full pb-8">
+      {winner === 'X' && (
+        <div className="mt-6 max-w-xs mx-auto w-full">
+          <ShareScore playerName={playerName} score={cumulativeScore} gameName="Triki MDJ" />
+        </div>
+      )}
+      <div className="flex flex-col gap-3 mt-4 max-w-xs mx-auto w-full pb-8">
         <button
           onClick={onReplay}
           className="w-full min-h-[56px] rounded-2xl font-bold text-white transition-opacity hover:opacity-90"

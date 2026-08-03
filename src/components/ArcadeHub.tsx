@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { Pencil } from 'lucide-react'
-import { getTopAllScores, getPlayerName, setPlayerName } from '../lib/arcadeScores'
-import type { GameScore } from '../lib/arcadeScores'
+import { getTopRanking, getSessionName, startSession } from '../lib/arcadeScores'
+import type { PlayerRank } from '../lib/arcadeScores'
 import NameEditor from './NameEditor'
 
 const GRADIENT = 'linear-gradient(135deg, #FBB040, #F05063, #29ABE2)'
 const RANK_COLORS = ['#FBB040', 'rgba(255,255,255,0.6)', 'rgba(255,255,255,0.6)', 'rgba(255,255,255,0.6)', 'rgba(255,255,255,0.6)']
-const GAME_EMOJIS: Record<string, string> = { quiz: '🧠', triki: '⭕❌' }
 
 const GAME_CARDS = [
   { id: 'quiz' as const, emoji: '🧠', title: 'Quiz MDJ', desc: '80 questions sur RDP, la culture et plus!' },
@@ -15,6 +14,7 @@ const GAME_CARDS = [
 
 interface ArcadeHubProps {
   onSelectGame: (game: 'quiz' | 'triki') => void
+  onEndSession: () => void
 }
 
 interface GameCardProps { emoji: string; title: string; desc: string; onPlay: () => void; disabled?: boolean }
@@ -60,21 +60,20 @@ function PlayerNameBar({ name, onEdit }: PlayerNameBarProps) {
   )
 }
 
-function LeaderboardRow({ entry, rank }: { entry: GameScore; rank: number }) {
+function LeaderboardRow({ entry, rank }: { entry: PlayerRank; rank: number }) {
   return (
     <div className="flex items-center gap-4 py-3 border-b border-white/10">
       <span className="font-black text-lg w-6 shrink-0" style={{ color: RANK_COLORS[rank] ?? 'rgba(255,255,255,0.6)' }}>
         {rank + 1}
       </span>
       <span className="flex-1 text-white font-semibold truncate">{entry.name}</span>
-      <span className="text-lg">{GAME_EMOJIS[entry.game] ?? '🎮'}</span>
-      <span className="font-bold tabular-nums" style={{ color: '#FBB040' }}>{entry.score} pts</span>
+      <span className="font-bold tabular-nums" style={{ color: '#FBB040' }}>{entry.totalScore} pts</span>
     </div>
   )
 }
 
 function GlobalLeaderboard() {
-  const topScores = getTopAllScores(5)
+  const topScores = getTopRanking(5)
   return (
     <div className="mt-12 max-w-md mx-auto px-6 pb-12">
       <h2 className="font-black text-xl text-white text-center mb-6">🏆 Top 5 — Tous les jeux</h2>
@@ -82,18 +81,18 @@ function GlobalLeaderboard() {
         <p className="text-white/40 text-center text-sm">Aucun score enregistré. Joue pour apparaître ici!</p>
       )}
       {topScores.map((entry, i) => (
-        <LeaderboardRow key={`${entry.name}-${entry.game}-${i}`} entry={entry} rank={i} />
+        <LeaderboardRow key={`${entry.name}-${i}`} entry={entry} rank={i} />
       ))}
     </div>
   )
 }
 
-export default function ArcadeHub({ onSelectGame }: ArcadeHubProps) {
-  const [playerName, setLocalName] = useState<string>(getPlayerName)
+export default function ArcadeHub({ onSelectGame, onEndSession }: ArcadeHubProps) {
+  const [playerName, setLocalName] = useState<string>(getSessionName)
   const [editingName, setEditingName] = useState(false)
 
   function handleSaveName(newName: string): void {
-    setPlayerName(newName)
+    startSession(newName)
     setLocalName(newName)
     setEditingName(false)
   }
@@ -135,6 +134,12 @@ export default function ArcadeHub({ onSelectGame }: ArcadeHubProps) {
         ))}
       </div>
       <GlobalLeaderboard />
+      <button
+        onClick={onEndSession}
+        className="block mx-auto mt-4 pb-8 text-white/40 text-sm underline underline-offset-2 hover:text-white/60 transition-colors text-center"
+      >
+        Quitter la session (mon score reste au classement)
+      </button>
     </div>
   )
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { isNameTaken, suggestAlternativeName } from '../lib/arcadeScores'
+import { isNameReserved, suggestAvailableName } from '../lib/arcadeScores'
 
 export interface NameEditorProps {
   currentName: string
@@ -9,7 +9,7 @@ export interface NameEditorProps {
 
 function validateName(trimmedName: string, currentName: string): string {
   if (!trimmedName) return 'Entre un prénom'
-  if (isNameTaken(trimmedName) && trimmedName !== currentName) return 'taken'
+  if (isNameReserved(trimmedName) && trimmedName !== currentName) return 'taken'
   return ''
 }
 
@@ -24,7 +24,7 @@ export default function NameEditor({ currentName, onSave, onCancel }: NameEditor
   }
 
   const isTaken = error === 'taken'
-  const suggestion = isTaken ? suggestAlternativeName(inputValue.trim()) : ''
+  const suggestion = isTaken ? suggestAvailableName(inputValue.trim()) : ''
 
   return (
     <div className="flex flex-col gap-3 w-full max-w-xs mx-auto">

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Trophy, Clock, CheckCircle, XCircle, RotateCcw, ArrowLeft } from 'lucide-react'
-import { saveScore, getTopScores } from '../lib/arcadeScores'
-import type { GameScore } from '../lib/arcadeScores'
+import ShareScore from './ShareScore'
+import { addPoints, getTopRanking, getSessionName, startSession, endSession } from '../lib/arcadeScores'
+import type { PlayerRank } from '../lib/arcadeScores'
 
 /* ── Brand palette ─────────────────────────────────────────────── */
 const BRAND = {
@@ -340,13 +341,6 @@ function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5)
 }
 
-function loadPlayerName(): string {
-  try { return localStorage.getItem('mdj_quiz_player_name') || '' } catch { return '' }
-}
-function savePlayerName(name: string) {
-  try { localStorage.setItem('mdj_quiz_player_name', name) } catch { /* noop */ }
-}
-
 /* ── Shell wrapper ──────────────────────────────────────────────── */
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -370,9 +364,9 @@ export default function QuizGame() {
   const [timeLeft, setTimeLeft]           = useState(TIMER_DURATION)
   const [isAnswered, setIsAnswered]       = useState(false)
   const [selected, setSelected]           = useState<number | null>(null)
-  const [playerName, setPlayerName]       = useState<string>(loadPlayerName)
-  const [nameInput, setNameInput]         = useState<string>(loadPlayerName)
-  const [localScores, setLocalScores]     = useState<GameScore[]>(() => getTopScores('quiz', 5))
+  const [playerName, setPlayerName]       = useState<string>(getSessionName)
+  const [nameInput, setNameInput]         = useState<string>(getSessionName)
+  const [localScores, setLocalScores]     = useState<PlayerRank[]>(() => getTopRanking(5))
 
   /* ── Timer ── */
   useEffect(() => {
@@ -385,7 +379,7 @@ export default function QuizGame() {
   function startGame(catId: CategoryId) {
     const name = nameInput.trim() || 'Joueur'
     setPlayerName(name)
-    savePlayerName(name)
+    startSession(name)
     setSelectedCat(catId)
     const pool = ALL_QUESTIONS.filter(q => q.category === catId)
     const qs = shuffle(pool.length >= 6 ? pool : ALL_QUESTIONS).slice(0, 6)
@@ -420,8 +414,8 @@ export default function QuizGame() {
   function endGame() {
     const finalScore = score
     const name = playerName || 'Joueur'
-    saveScore({ name, score: finalScore, game: 'quiz', date: new Date().toISOString() })
-    setLocalScores(getTopScores('quiz', 5))
+    addPoints(name, finalScore)
+    setLocalScores(getTopRanking(5))
     setGameState('result')
   }
 
@@ -485,7 +479,7 @@ export default function QuizGame() {
             />
             {isReturning && (
               <button
-                onClick={() => { setPlayerName(''); setNameInput(''); savePlayerName('') }}
+                onClick={() => { setPlayerName(''); setNameInput(''); endSession() }}
                 className="mt-2 text-white/30 text-xs underline underline-offset-2 hover:text-white/60 transition-colors w-full text-center"
               >
                 Pas toi? Change de prénom
@@ -658,6 +652,8 @@ export default function QuizGame() {
             <p className="text-white/40 text-sm mt-1">points sur {maxScore} max</p>
           </div>
 
+          <ShareScore playerName={playerName} score={score} gameName="Quiz MDJ" />
+
           <div className="flex flex-col gap-3 w-full">
             <button
               onClick={() => setGameState('home')}
@@ -738,7 +734,7 @@ export default function QuizGame() {
                   </span>
                   <span className="font-semibold text-white flex-1 text-left">{entry.name}</span>
                   <span className="font-bold text-sm tabular-nums" style={{ color: BRAND.yellow }}>
-                    {entry.score} pts
+                    {entry.totalScore} pts
                   </span>
                 </div>
               ))
