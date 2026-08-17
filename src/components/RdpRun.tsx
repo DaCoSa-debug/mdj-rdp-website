@@ -10,6 +10,10 @@ const PLAYER_H = 57
 const GRAVITY = 1_650
 const JUMP_VELOCITY = -620
 
+function getPlayerX(): number {
+  return window.matchMedia('(max-width: 639px)').matches ? 28 : PLAYER_X
+}
+
 type GameStatus = 'intro' | 'running' | 'over'
 
 interface Obstacle { x: number; width: number; height: number; kind: 'crate' | 'cone' }
@@ -151,7 +155,7 @@ export default function RdpRun() {
     }
 
     // Runner, purposely simple and inclusive/cartoon-like.
-    const px = PLAYER_X
+    const px = getPlayerX()
     const py = data.playerY
     context.fillStyle = '#231f20'
     context.fillRect(px + 11, py + 48, 8, 12)
@@ -228,7 +232,7 @@ export default function RdpRun() {
       game.obstacles = game.obstacles.filter(obstacle => obstacle.x + obstacle.width > -20)
       game.coins = game.coins.filter(coin => coin.x > -20 && !coin.collected)
 
-      const playerX = PLAYER_X + 6
+      const playerX = getPlayerX() + 6
       const playerY = game.playerY + 7
       for (const obstacle of game.obstacles) {
         if (overlaps(playerX, playerY, PLAYER_W - 10, PLAYER_H - 7, obstacle.x + 4, GROUND_Y - obstacle.height + 3, obstacle.width - 8, obstacle.height - 3)) {
