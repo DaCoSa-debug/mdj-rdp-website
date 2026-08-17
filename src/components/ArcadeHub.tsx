@@ -8,12 +8,13 @@ const GRADIENT = 'linear-gradient(135deg, #FBB040, #F05063, #29ABE2)'
 const RANK_COLORS = ['#FBB040', 'rgba(255,255,255,0.6)', 'rgba(255,255,255,0.6)', 'rgba(255,255,255,0.6)', 'rgba(255,255,255,0.6)']
 
 const GAME_CARDS = [
+  { id: 'rdp-run' as const, emoji: '🏃', title: 'RDP Run', desc: 'Cours dans RDP, évite les obstacles et attrape les pièces!' },
   { id: 'quiz' as const, emoji: '🧠', title: 'Quiz MDJ', desc: '80 questions sur RDP, la culture et plus!' },
   { id: 'triki' as const, emoji: '⭕❌', title: 'Triki MDJ', desc: 'Le classique X et O. Défie tes amis ou l\'ordi!' },
 ]
 
 interface ArcadeHubProps {
-  onSelectGame: (game: 'quiz' | 'triki') => void
+  onSelectGame: (game: 'quiz' | 'triki' | 'rdp-run') => void
   onEndSession: () => void
 }
 

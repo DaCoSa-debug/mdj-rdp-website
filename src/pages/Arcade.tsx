@@ -5,10 +5,11 @@ import WhatsAppButton from '../components/WhatsAppButton'
 import QuizGame from '../components/QuizGame'
 import TrikiGame from '../components/TrikiGame'
 import ArcadeHub from '../components/ArcadeHub'
+import RdpRun from '../components/RdpRun'
 import NameEditor from '../components/NameEditor'
 import { getSessionName, startSession, endSession } from '../lib/arcadeScores'
 
-type SelectedGame = 'quiz' | 'triki' | null
+type SelectedGame = 'quiz' | 'triki' | 'rdp-run' | null
 
 const GRADIENT = 'linear-gradient(135deg, #FBB040, #F05063, #29ABE2)'
 
@@ -77,6 +78,7 @@ export default function Arcade() {
         {selectedGame === null && <ArcadeHub onSelectGame={setSelectedGame} onEndSession={handleEndSession} />}
         {selectedGame === 'quiz' && <QuizGame />}
         {selectedGame === 'triki' && <TrikiGame />}
+        {selectedGame === 'rdp-run' && <RdpRun />}
       </section>
       <Footer />
       <WhatsAppButton />
