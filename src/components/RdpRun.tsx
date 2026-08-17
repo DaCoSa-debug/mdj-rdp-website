@@ -5,8 +5,8 @@ const WIDTH = 960
 const HEIGHT = 440
 const GROUND_Y = 354
 const PLAYER_X = 145
-const PLAYER_W = 38
-const PLAYER_H = 57
+const PLAYER_W = 30
+const PLAYER_H = 45
 const GRAVITY = 1_650
 const JUMP_VELOCITY = -620
 
@@ -16,8 +16,8 @@ function getPlayerX(): number {
 
 type GameStatus = 'intro' | 'running' | 'over'
 
-interface Obstacle { x: number; width: number; height: number; kind: 'crate' | 'cone' }
-interface Coin { x: number; y: number; collected: boolean }
+interface Obstacle { x: number; width: number; height: number; kind: 'crate' | 'cone' | 'platform' }
+interface Coin { x: number; y: number; collected: boolean; value: number; color: string }
 
 interface GameData {
   playerY: number
@@ -26,6 +26,8 @@ interface GameData {
   coins: Coin[]
   distance: number
   coinCount: number
+  coinPoints: number
+  jumpsUsed: number
   speed: number
   obstacleTimer: number
   coinTimer: number
@@ -116,11 +118,11 @@ export default function RdpRun() {
     // Coins.
     for (const coin of data.coins) {
       if (coin.collected) continue
-      context.fillStyle = '#fbb040'
+      context.fillStyle = coin.color
       context.beginPath()
       context.arc(coin.x, coin.y, 13, 0, Math.PI * 2)
       context.fill()
-      context.strokeStyle = '#fff1a8'
+      context.strokeStyle = coin.value > 50 ? '#dff8ff' : '#fff1a8'
       context.lineWidth = 3
       context.beginPath()
       context.arc(coin.x, coin.y, 7, 0, Math.PI * 2)
@@ -141,7 +143,7 @@ export default function RdpRun() {
         context.moveTo(obstacle.x + obstacle.width - 6, y + 6)
         context.lineTo(obstacle.x + 6, y + obstacle.height - 6)
         context.stroke()
-      } else {
+      } else if (obstacle.kind === 'cone') {
         context.fillStyle = '#f05063'
         context.beginPath()
         context.moveTo(obstacle.x + obstacle.width / 2, y)
@@ -151,29 +153,40 @@ export default function RdpRun() {
         context.fill()
         context.fillStyle = '#fff'
         context.fillRect(obstacle.x + 8, y + obstacle.height * .58, obstacle.width - 16, 7)
+      } else {
+        context.fillStyle = '#516674'
+        roundedRect(context, obstacle.x, y, obstacle.width, obstacle.height, 7)
+        context.fillStyle = '#fbb040'
+        context.fillRect(obstacle.x + 5, y + 10, obstacle.width - 10, 7)
+        context.fillStyle = 'rgba(255,255,255,.35)'
+        context.fillRect(obstacle.x + 12, y + 28, obstacle.width - 24, 4)
       }
     }
 
     // Runner, purposely simple and inclusive/cartoon-like.
     const px = getPlayerX()
     const py = data.playerY
+    context.save()
+    context.translate(px, py)
+    context.scale(.72, .72)
     context.fillStyle = '#231f20'
-    context.fillRect(px + 11, py + 48, 8, 12)
-    context.fillRect(px + 25, py + 48, 8, 12)
+    context.fillRect(11, 48, 8, 12)
+    context.fillRect(25, 48, 8, 12)
     context.fillStyle = '#29abe2'
-    roundedRect(context, px + 7, py + 22, 27, 30, 8)
+    roundedRect(context, 7, 22, 27, 30, 8)
     context.fillStyle = '#f5b88c'
     context.beginPath()
-    context.arc(px + 20, py + 14, 13, 0, Math.PI * 2)
+    context.arc(20, 14, 13, 0, Math.PI * 2)
     context.fill()
     context.fillStyle = '#f05063'
-    context.fillRect(px + 6, py + 1, 28, 7)
-    context.fillRect(px + 4, py + 7, 13, 5)
+    context.fillRect(6, 1, 28, 7)
+    context.fillRect(4, 7, 13, 5)
     context.fillStyle = '#231f20'
-    context.fillRect(px + 24, py + 12, 3, 3)
+    context.fillRect(24, 12, 3, 3)
     context.fillStyle = '#fff'
-    roundedRect(context, px + 6, py + 57, 15, 5, 3)
-    roundedRect(context, px + 23, py + 57, 15, 5, 3)
+    roundedRect(context, 6, 57, 15, 5, 3)
+    roundedRect(context, 23, 57, 15, 5, 3)
+    context.restore()
   }, [])
 
   const finishGame = useCallback((finalScore: number) => {
@@ -194,7 +207,7 @@ export default function RdpRun() {
   const begin = useCallback(() => {
     if (animationRef.current !== null) cancelAnimationFrame(animationRef.current)
     savedScoreRef.current = false
-    const initial: GameData = { playerY: GROUND_Y - PLAYER_H, velocityY: 0, obstacles: [], coins: [], distance: 0, coinCount: 0, speed: 315, obstacleTimer: 0.9, coinTimer: 1.4, lastTime: performance.now() }
+    const initial: GameData = { playerY: GROUND_Y - PLAYER_H, velocityY: 0, obstacles: [], coins: [], distance: 0, coinCount: 0, coinPoints: 0, jumpsUsed: 0, speed: 315, obstacleTimer: 0.9, coinTimer: 1.4, lastTime: performance.now() }
     dataRef.current = initial
     statusRef.current = 'running'
     setStatus('running')
@@ -210,21 +223,27 @@ export default function RdpRun() {
       game.distance += game.speed * dt
       game.velocityY += GRAVITY * dt
       game.playerY = Math.min(GROUND_Y - PLAYER_H, game.playerY + game.velocityY * dt)
-      if (game.playerY >= GROUND_Y - PLAYER_H) game.velocityY = 0
+      if (game.playerY >= GROUND_Y - PLAYER_H) {
+        game.velocityY = 0
+        game.jumpsUsed = 0
+      }
       game.obstacleTimer -= dt
       game.coinTimer -= dt
       // On a narrow phone the canvas is shown as a left-aligned cropped view.
       // Spawn items closer to the cropped camera while keeping enough time to react.
       const spawnX = window.matchMedia('(max-width: 639px)').matches ? 600 : WIDTH + 35
       if (game.obstacleTimer <= 0) {
-        const cone = Math.random() > .55
-        game.obstacles.push({ x: spawnX, width: cone ? 32 : 47, height: cone ? 48 : 54, kind: cone ? 'cone' : 'crate' })
+        const roll = Math.random()
+        const kind = roll < .2 ? 'platform' : roll < .62 ? 'cone' : 'crate'
+        const isPlatform = kind === 'platform'
+        game.obstacles.push({ x: spawnX, width: isPlatform ? 118 : kind === 'cone' ? 32 : 47, height: isPlatform ? 76 : kind === 'cone' ? 48 : 54, kind })
         game.obstacleTimer = Math.max(.72, 1.55 - game.speed / 900) + Math.random() * .75
       }
       if (game.coinTimer <= 0) {
-        const count = Math.random() > .55 ? 3 : 1
-        const baseY = GROUND_Y - 75 - Math.random() * 115
-        for (let index = 0; index < count; index++) game.coins.push({ x: spawnX + index * 42, y: baseY - Math.sin(index * 1.25) * 22, collected: false })
+        const highValue = Math.random() < .35
+        const count = highValue ? 2 : Math.random() > .55 ? 3 : 1
+        const baseY = highValue ? GROUND_Y - 210 - Math.random() * 45 : GROUND_Y - 75 - Math.random() * 115
+        for (let index = 0; index < count; index++) game.coins.push({ x: spawnX + index * 42, y: baseY - Math.sin(index * 1.25) * 22, collected: false, value: highValue ? 125 : 50, color: highValue ? '#29ABE2' : '#fbb040' })
         game.coinTimer = 1.6 + Math.random() * 1.3
       }
       game.obstacles.forEach(obstacle => { obstacle.x -= game.speed * dt })
@@ -235,8 +254,17 @@ export default function RdpRun() {
       const playerX = getPlayerX() + 6
       const playerY = game.playerY + 7
       for (const obstacle of game.obstacles) {
+        const obstacleTop = GROUND_Y - obstacle.height
+        const playerBottom = playerY + PLAYER_H - 7
+        const previousBottom = playerBottom - game.velocityY * dt
+        if (obstacle.kind === 'platform' && game.velocityY >= 0 && previousBottom <= obstacleTop + 8 && playerBottom >= obstacleTop && overlaps(playerX, playerY, PLAYER_W - 10, PLAYER_H - 7, obstacle.x + 4, obstacleTop, obstacle.width - 8, obstacle.height)) {
+          game.playerY = obstacleTop - PLAYER_H
+          game.velocityY = 0
+          game.jumpsUsed = 0
+          continue
+        }
         if (overlaps(playerX, playerY, PLAYER_W - 10, PLAYER_H - 7, obstacle.x + 4, GROUND_Y - obstacle.height + 3, obstacle.width - 8, obstacle.height - 3)) {
-          const result = Math.floor(game.distance / 10) + game.coinCount * 50
+          const result = Math.floor(game.distance / 10) + game.coinPoints
           draw(game)
           finishGame(result)
           return
@@ -246,9 +274,10 @@ export default function RdpRun() {
         if (!coin.collected && overlaps(playerX, playerY, PLAYER_W - 5, PLAYER_H - 8, coin.x - 13, coin.y - 13, 26, 26)) {
           coin.collected = true
           game.coinCount++
+          game.coinPoints += coin.value
         }
       }
-      const currentScore = Math.floor(game.distance / 10) + game.coinCount * 50
+      const currentScore = Math.floor(game.distance / 10) + game.coinPoints
       setScore(currentScore)
       setCoins(game.coinCount)
       draw(game)
@@ -261,7 +290,10 @@ export default function RdpRun() {
   const jump = useCallback(() => {
     const game = dataRef.current
     if (statusRef.current === 'intro' || statusRef.current === 'over') { begin(); return }
-    if (game && game.playerY >= GROUND_Y - PLAYER_H - 2) game.velocityY = JUMP_VELOCITY
+    if (game && game.jumpsUsed < 2) {
+      game.velocityY = game.jumpsUsed === 0 ? JUMP_VELOCITY : JUMP_VELOCITY * .88
+      game.jumpsUsed++
+    }
   }, [begin])
 
   useEffect(() => {
@@ -276,7 +308,7 @@ export default function RdpRun() {
   }, [jump])
 
   useEffect(() => {
-    const initial: GameData = { playerY: GROUND_Y - PLAYER_H, velocityY: 0, obstacles: [], coins: [], distance: 0, coinCount: 0, speed: 315, obstacleTimer: 0, coinTimer: 0, lastTime: 0 }
+    const initial: GameData = { playerY: GROUND_Y - PLAYER_H, velocityY: 0, obstacles: [], coins: [], distance: 0, coinCount: 0, coinPoints: 0, jumpsUsed: 0, speed: 315, obstacleTimer: 0, coinTimer: 0, lastTime: 0 }
     dataRef.current = initial
     draw(initial)
   }, [draw])
