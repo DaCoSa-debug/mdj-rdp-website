@@ -209,15 +209,18 @@ export default function RdpRun() {
       if (game.playerY >= GROUND_Y - PLAYER_H) game.velocityY = 0
       game.obstacleTimer -= dt
       game.coinTimer -= dt
+      // On a narrow phone the canvas is shown as a left-aligned cropped view.
+      // Spawn items closer to the cropped camera while keeping enough time to react.
+      const spawnX = window.matchMedia('(max-width: 639px)').matches ? 600 : WIDTH + 35
       if (game.obstacleTimer <= 0) {
         const cone = Math.random() > .55
-        game.obstacles.push({ x: WIDTH + 35, width: cone ? 32 : 47, height: cone ? 48 : 54, kind: cone ? 'cone' : 'crate' })
+        game.obstacles.push({ x: spawnX, width: cone ? 32 : 47, height: cone ? 48 : 54, kind: cone ? 'cone' : 'crate' })
         game.obstacleTimer = Math.max(.72, 1.55 - game.speed / 900) + Math.random() * .75
       }
       if (game.coinTimer <= 0) {
         const count = Math.random() > .55 ? 3 : 1
         const baseY = GROUND_Y - 75 - Math.random() * 115
-        for (let index = 0; index < count; index++) game.coins.push({ x: WIDTH + 35 + index * 42, y: baseY - Math.sin(index * 1.25) * 22, collected: false })
+        for (let index = 0; index < count; index++) game.coins.push({ x: spawnX + index * 42, y: baseY - Math.sin(index * 1.25) * 22, collected: false })
         game.coinTimer = 1.6 + Math.random() * 1.3
       }
       game.obstacles.forEach(obstacle => { obstacle.x -= game.speed * dt })
@@ -282,17 +285,17 @@ export default function RdpRun() {
           <div className="flex gap-3 text-right"><div><p className="text-[10px] text-white/60 sm:text-xs">SCORE</p><p className="text-xl font-black tabular-nums sm:text-2xl">{score}</p></div><div className="border-l border-white/20 pl-3"><p className="text-[10px] text-white/60 sm:text-xs">PIÈCES</p><p className="text-xl font-black tabular-nums text-[#FBB040] sm:text-2xl">× {coins}</p></div></div>
         </div>
         <div className="relative overflow-hidden rounded-3xl border-2 border-white/20 bg-[#29ABE2] shadow-2xl">
-          <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} onPointerDown={jump} className="block h-[52svh] min-h-[340px] max-h-[500px] w-full touch-manipulation sm:h-auto sm:min-h-0 sm:max-h-none" aria-label="RDP Run. Appuie pour sauter." />
+          <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} onPointerDown={jump} className="block h-[75svh] min-h-[700px] w-full touch-manipulation object-cover object-left sm:h-auto sm:min-h-0 sm:object-contain" aria-label="RDP Run. Appuie pour sauter." />
+          <div className="pointer-events-none absolute left-1/2 top-4 -translate-x-1/2 rounded-full bg-[#231F20]/75 px-4 py-2 text-center text-xs font-bold text-white shadow-lg sm:hidden">
+            Touchez l’écran pour sauter
+          </div>
           {status !== 'running' && (
             <div className="absolute inset-0 flex items-center justify-center bg-[#231F20]/55 p-5 text-center backdrop-blur-[2px]">
               {status === 'intro' ? <div className="text-white"><p className="mb-2 text-sm font-bold tracking-[.2em] text-[#FBB040]">BIENVENUE À RDP</p><h2 className="text-4xl font-black sm:text-5xl">RDP RUN</h2><p className="mx-auto mt-3 max-w-sm text-white/80">Saute les obstacles, attrape les pièces et cours le plus loin possible.</p><button onClick={begin} className="mt-7 rounded-full bg-[#F05063] px-9 py-3 font-black text-white shadow-lg transition-transform hover:scale-105">JOUER</button><p className="mt-4 text-xs text-white/65">Tape l'écran ou appuie sur ESPACE pour sauter</p></div> : <div className="text-white"><p className="text-sm font-bold tracking-[.2em] text-[#FBB040]">FIN DE PARTIE</p><h2 className="mt-1 text-4xl font-black">GAME OVER</h2><p className="mt-4 text-xl">Score: <strong>{score}</strong></p><p className="text-white/70">Meilleur score: {best}</p><button onClick={begin} className="mt-6 rounded-full bg-[#F05063] px-8 py-3 font-black text-white shadow-lg transition-transform hover:scale-105">REJOUER</button></div>}
             </div>
           )}
         </div>
-        <button onPointerDown={jump} className="mt-3 flex min-h-20 w-full items-center justify-center gap-3 rounded-2xl bg-[#F05063] text-lg font-black text-white shadow-lg shadow-[#F05063]/25 active:scale-[.98] sm:hidden" aria-label="Sauter">
-          <span className="text-3xl">↑</span> TOUCHE ICI POUR SAUTER
-        </button>
-        <p className="mt-3 text-center text-xs text-white/55 sm:mt-4 sm:text-sm">Mobile: écran complet ou grand bouton pour sauter · Ordinateur: <kbd className="rounded bg-white/10 px-2 py-1 text-white/80">ESPACE</kbd> ou <kbd className="rounded bg-white/10 px-2 py-1 text-white/80">↑</kbd></p>
+        <p className="mt-3 text-center text-xs text-white/55 sm:mt-4 sm:text-sm">Mobile: touche l’écran pour sauter · Ordinateur: <kbd className="rounded bg-white/10 px-2 py-1 text-white/80">ESPACE</kbd> ou <kbd className="rounded bg-white/10 px-2 py-1 text-white/80">↑</kbd></p>
       </div>
     </div>
   )
