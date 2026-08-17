@@ -275,21 +275,24 @@ export default function RdpRun() {
   }, [draw])
 
   return (
-    <div className="min-h-screen bg-[#231F20] px-4 py-10 sm:px-6">
+    <div className="min-h-screen bg-[#231F20] px-3 py-5 sm:px-6 sm:py-10">
       <div className="mx-auto max-w-5xl">
-        <div className="mb-5 flex flex-wrap items-end justify-between gap-3 text-white">
-          <div><p className="text-xs font-black tracking-[.25em] text-[#FBB040]">MDJ ARCADE</p><h1 className="text-4xl font-black italic sm:text-5xl">RDP <span className="text-[#F05063]">RUN</span></h1></div>
-          <div className="flex gap-3 text-right"><div><p className="text-xs text-white/60">SCORE</p><p className="text-2xl font-black tabular-nums">{score}</p></div><div className="border-l border-white/20 pl-3"><p className="text-xs text-white/60">PIÈCES</p><p className="text-2xl font-black tabular-nums text-[#FBB040]">× {coins}</p></div></div>
+        <div className="mb-3 flex flex-wrap items-end justify-between gap-3 text-white sm:mb-5">
+          <div><p className="text-[10px] font-black tracking-[.25em] text-[#FBB040] sm:text-xs">MDJ ARCADE</p><h1 className="text-3xl font-black italic sm:text-5xl">RDP <span className="text-[#F05063]">RUN</span></h1></div>
+          <div className="flex gap-3 text-right"><div><p className="text-[10px] text-white/60 sm:text-xs">SCORE</p><p className="text-xl font-black tabular-nums sm:text-2xl">{score}</p></div><div className="border-l border-white/20 pl-3"><p className="text-[10px] text-white/60 sm:text-xs">PIÈCES</p><p className="text-xl font-black tabular-nums text-[#FBB040] sm:text-2xl">× {coins}</p></div></div>
         </div>
         <div className="relative overflow-hidden rounded-3xl border-2 border-white/20 bg-[#29ABE2] shadow-2xl">
-          <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} onPointerDown={jump} className="block w-full touch-manipulation" aria-label="RDP Run. Appuie pour sauter." />
+          <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} onPointerDown={jump} className="block h-[52svh] min-h-[340px] max-h-[500px] w-full touch-manipulation sm:h-auto sm:min-h-0 sm:max-h-none" aria-label="RDP Run. Appuie pour sauter." />
           {status !== 'running' && (
             <div className="absolute inset-0 flex items-center justify-center bg-[#231F20]/55 p-5 text-center backdrop-blur-[2px]">
               {status === 'intro' ? <div className="text-white"><p className="mb-2 text-sm font-bold tracking-[.2em] text-[#FBB040]">BIENVENUE À RDP</p><h2 className="text-4xl font-black sm:text-5xl">RDP RUN</h2><p className="mx-auto mt-3 max-w-sm text-white/80">Saute les obstacles, attrape les pièces et cours le plus loin possible.</p><button onClick={begin} className="mt-7 rounded-full bg-[#F05063] px-9 py-3 font-black text-white shadow-lg transition-transform hover:scale-105">JOUER</button><p className="mt-4 text-xs text-white/65">Tape l'écran ou appuie sur ESPACE pour sauter</p></div> : <div className="text-white"><p className="text-sm font-bold tracking-[.2em] text-[#FBB040]">FIN DE PARTIE</p><h2 className="mt-1 text-4xl font-black">GAME OVER</h2><p className="mt-4 text-xl">Score: <strong>{score}</strong></p><p className="text-white/70">Meilleur score: {best}</p><button onClick={begin} className="mt-6 rounded-full bg-[#F05063] px-8 py-3 font-black text-white shadow-lg transition-transform hover:scale-105">REJOUER</button></div>}
             </div>
           )}
         </div>
-        <p className="mt-4 text-center text-sm text-white/55">Mobile: touche l’écran pour sauter · Ordinateur: <kbd className="rounded bg-white/10 px-2 py-1 text-white/80">ESPACE</kbd> ou <kbd className="rounded bg-white/10 px-2 py-1 text-white/80">↑</kbd></p>
+        <button onPointerDown={jump} className="mt-3 flex min-h-20 w-full items-center justify-center gap-3 rounded-2xl bg-[#F05063] text-lg font-black text-white shadow-lg shadow-[#F05063]/25 active:scale-[.98] sm:hidden" aria-label="Sauter">
+          <span className="text-3xl">↑</span> TOUCHE ICI POUR SAUTER
+        </button>
+        <p className="mt-3 text-center text-xs text-white/55 sm:mt-4 sm:text-sm">Mobile: écran complet ou grand bouton pour sauter · Ordinateur: <kbd className="rounded bg-white/10 px-2 py-1 text-white/80">ESPACE</kbd> ou <kbd className="rounded bg-white/10 px-2 py-1 text-white/80">↑</kbd></p>
       </div>
     </div>
   )
