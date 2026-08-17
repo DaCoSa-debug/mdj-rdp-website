@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { addPoints, getSessionName } from '../lib/arcadeScores'
+import { addXp, getSessionName, recordGameScore } from '../lib/arcadeScores'
 
 const WIDTH = 960
 const HEIGHT = 440
@@ -200,7 +200,10 @@ export default function RdpRun() {
     if (!savedScoreRef.current) {
       savedScoreRef.current = true
       const playerName = getSessionName()
-      if (playerName && finalScore > 0) addPoints(playerName, finalScore)
+      if (playerName && finalScore > 0) {
+        recordGameScore('rdp-run', playerName, finalScore)
+        addXp(playerName, Math.max(10, Math.floor(finalScore / 30)))
+      }
     }
   }, [])
 

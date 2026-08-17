@@ -8,7 +8,9 @@ export interface NameEditorProps {
 }
 
 function validateName(trimmedName: string, currentName: string): string {
-  if (!trimmedName) return 'Entre un prénom'
+  if (trimmedName.length < 3) return 'Choisis un pseudo de 3 caractères minimum'
+  if (trimmedName.length > 14) return 'Le pseudo peut contenir 14 caractères maximum'
+  if (!/^[\p{L}\p{N} _-]+$/u.test(trimmedName)) return 'Utilise seulement des lettres, chiffres, espaces, _ ou -'
   if (isNameReserved(trimmedName) && trimmedName !== currentName) return 'taken'
   return ''
 }
@@ -32,7 +34,8 @@ export default function NameEditor({ currentName, onSave, onCancel }: NameEditor
         className="bg-white/10 border border-white/20 rounded-2xl px-5 py-4 text-white placeholder-white/40 w-full outline-none focus:border-white/40"
         value={inputValue}
         onChange={e => { setInputValue(e.target.value); setError('') }}
-        placeholder="Ton prénom"
+        placeholder="Ton pseudo"
+        maxLength={14}
       />
       {error && !isTaken && <p className="text-red-400 text-sm">{error}</p>}
       {isTaken && (

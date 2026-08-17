@@ -34,7 +34,7 @@ function SessionEntryScreen({ onStart }: { onStart: (name: string) => void }) {
           Arcade
         </span>
       </h1>
-      <p className="text-white/60 text-center mt-2 mb-8">Entre ton prénom pour commencer à jouer!</p>
+      <p className="text-white/60 text-center mt-2 mb-8">Choisis un pseudo pour commencer à jouer!</p>
       <NameEditor currentName="" onSave={onStart} />
     </div>
   )

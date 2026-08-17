@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { addPoints, getTopRanking, getSessionName } from '../lib/arcadeScores'
+import { addGameWin, addXp, getPlayerGameScore, getSessionName } from '../lib/arcadeScores'
 import { checkWinner, getAiMove } from '../lib/trikiLogic'
 import type { BoardCell, GameSymbol, Difficulty } from '../lib/trikiLogic'
 import TrikiModeScreen from './TrikiModeScreen'
@@ -9,12 +9,6 @@ type Mode = 'friend' | 'ai'
 type WinState = GameSymbol | 'draw' | null
 
 const EMPTY_BOARD: BoardCell[] = Array(9).fill(null)
-
-function loadCumulativeScore(name: string): number {
-  if (!name) return 0
-  const entry = getTopRanking(100).find(s => s.name === name)
-  return entry?.totalScore ?? 0
-}
 
 export default function TrikiGame() {
   const [board, setBoard] = useState<BoardCell[]>([...EMPTY_BOARD])
@@ -28,7 +22,7 @@ export default function TrikiGame() {
   const [cumulativeWins, setCumulativeWins] = useState<number>(0)
 
   useEffect(() => {
-    setCumulativeWins(loadCumulativeScore(playerName))
+    setCumulativeWins(playerName ? getPlayerGameScore('triki', playerName) : 0)
     return () => undefined
   }, [playerName])
 
@@ -40,7 +34,10 @@ export default function TrikiGame() {
 
   function persistWin(): void {
     setCumulativeWins(w => w + 1)
-    addPoints(playerName || 'Anonyme', 1)
+    if (!playerName) return
+    const xpReward = difficulty === 'difficile' ? 30 : difficulty === 'moyen' ? 20 : 10
+    addGameWin('triki', playerName)
+    addXp(playerName, xpReward)
   }
 
   function applyMove(newBoard: BoardCell[], player: GameSymbol): void {
@@ -50,7 +47,7 @@ export default function TrikiGame() {
       setWinner(result.winner)
       setWinningLine([...result.line])
       setScores(s => ({ ...s, [result.winner]: s[result.winner] + 1 }))
-      if (result.winner === 'X') persistWin()
+      if (result.winner === 'X' && mode === 'ai') persistWin()
       return
     }
     if (newBoard.every(Boolean)) { setWinner('draw'); return }

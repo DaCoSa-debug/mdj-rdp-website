@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Trophy, Clock, CheckCircle, XCircle, RotateCcw, ArrowLeft } from 'lucide-react'
 import ShareScore from './ShareScore'
-import { addPoints, getTopRanking, getSessionName, startSession, endSession } from '../lib/arcadeScores'
-import type { PlayerRank } from '../lib/arcadeScores'
+import { addXp, getGameTopRanking, getSessionName, recordGameScore } from '../lib/arcadeScores'
+import type { GameRank } from '../lib/arcadeScores'
 
 /* ── Brand palette ─────────────────────────────────────────────── */
 const BRAND = {
@@ -364,9 +364,8 @@ export default function QuizGame() {
   const [timeLeft, setTimeLeft]           = useState(TIMER_DURATION)
   const [isAnswered, setIsAnswered]       = useState(false)
   const [selected, setSelected]           = useState<number | null>(null)
-  const [playerName, setPlayerName]       = useState<string>(getSessionName)
-  const [nameInput, setNameInput]         = useState<string>(getSessionName)
-  const [localScores, setLocalScores]     = useState<PlayerRank[]>(() => getTopRanking(5))
+  const [playerName]                      = useState<string>(getSessionName)
+  const [localScores, setLocalScores]     = useState<GameRank[]>(() => getGameTopRanking('quiz', 5))
 
   /* ── Timer ── */
   useEffect(() => {
@@ -377,9 +376,6 @@ export default function QuizGame() {
   }, [gameState, isAnswered, timeLeft])
 
   function startGame(catId: CategoryId) {
-    const name = nameInput.trim() || 'Joueur'
-    setPlayerName(name)
-    startSession(name)
     setSelectedCat(catId)
     const pool = ALL_QUESTIONS.filter(q => q.category === catId)
     const qs = shuffle(pool.length >= 6 ? pool : ALL_QUESTIONS).slice(0, 6)
@@ -414,8 +410,9 @@ export default function QuizGame() {
   function endGame() {
     const finalScore = score
     const name = playerName || 'Joueur'
-    addPoints(name, finalScore)
-    setLocalScores(getTopRanking(5))
+    recordGameScore('quiz', name, finalScore)
+    addXp(name, Math.max(10, Math.round(finalScore / 10)))
+    setLocalScores(getGameTopRanking('quiz', 5))
     setGameState('result')
   }
 
@@ -429,7 +426,6 @@ export default function QuizGame() {
   const catColor   = catDef?.color ?? BRAND.orange
   const timerPct   = (timeLeft / TIMER_DURATION) * 100
   const timerColor = timeLeft > 12 ? catColor : timeLeft > 6 ? BRAND.yellow : BRAND.pink
-  const isReturning = playerName !== ''
 
   /* ══════════════════════════════
      HOME SCREEN
@@ -460,31 +456,9 @@ export default function QuizGame() {
             <p className="text-white/60 text-sm mt-1">Teste tes connaissances!</p>
           </div>
 
-          {/* Name input */}
-          <div className="mb-6">
-            {isReturning && (
-              <p className="text-white/60 text-sm mb-2 text-center">Bonjour {playerName}! 👋</p>
-            )}
-            <input
-              type="text"
-              value={nameInput}
-              onChange={e => setNameInput(e.target.value)}
-              placeholder="Ton prénom…"
-              maxLength={20}
-              className="w-full min-h-[48px] rounded-2xl px-5 py-3 text-white font-semibold text-base placeholder-white/30 outline-none"
-              style={{
-                background: 'rgba(255,255,255,0.10)',
-                border: '1px solid rgba(255,255,255,0.20)',
-              }}
-            />
-            {isReturning && (
-              <button
-                onClick={() => { setPlayerName(''); setNameInput(''); endSession() }}
-                className="mt-2 text-white/30 text-xs underline underline-offset-2 hover:text-white/60 transition-colors w-full text-center"
-              >
-                Pas toi? Change de prénom
-              </button>
-            )}
+          <div className="mb-6 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-center">
+            <p className="text-xs font-bold uppercase tracking-widest text-white/40">Joueur</p>
+            <p className="mt-1 font-black text-white">{playerName || 'Joueur'}</p>
           </div>
 
           {/* Category grid */}
@@ -680,7 +654,7 @@ export default function QuizGame() {
             onClick={() => setGameState('home')}
             className="text-white/30 text-xs text-center mt-6 hover:text-white/60 underline underline-offset-2 transition-colors"
           >
-            Changer de prénom?
+            Changer de catégorie
           </button>
         </div>
       </Shell>
@@ -715,7 +689,8 @@ export default function QuizGame() {
           </div>
 
           <p className="text-white/40 text-xs uppercase tracking-widest mb-1 font-semibold text-center">MDJ ARCADE</p>
-          <h2 className="font-black text-3xl text-white mb-8 text-center">Classement</h2>
+          <h2 className="font-black text-3xl text-white mb-2 text-center">Classement Quiz</h2>
+          <p className="text-center text-sm text-white/45 mb-8">Meilleurs scores de la semaine</p>
 
           <div className="flex flex-col gap-3 flex-1">
             {localScores.length === 0 ? (
@@ -734,7 +709,7 @@ export default function QuizGame() {
                   </span>
                   <span className="font-semibold text-white flex-1 text-left">{entry.name}</span>
                   <span className="font-bold text-sm tabular-nums" style={{ color: BRAND.yellow }}>
-                    {entry.totalScore} pts
+                    {entry.score} pts
                   </span>
                 </div>
               ))
