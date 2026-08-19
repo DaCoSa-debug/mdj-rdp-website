@@ -48,7 +48,11 @@ function readBest(): number {
   try { return Number(localStorage.getItem('mdj-rdp-run-best') ?? 0) } catch { return 0 }
 }
 
-export default function RdpRun() {
+interface RdpRunProps {
+  onExit: () => void
+}
+
+export default function RdpRun({ onExit }: RdpRunProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const animationRef = useRef<number | null>(null)
   const dataRef = useRef<GameData | null>(null)
@@ -321,7 +325,7 @@ export default function RdpRun() {
       <div className="mx-auto max-w-5xl">
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3 text-white sm:mb-5">
           <div><p className="text-[10px] font-black tracking-[.25em] text-[#FBB040] sm:text-xs">MDJ ARCADE</p><h1 className="text-3xl font-black italic sm:text-5xl">RDP <span className="text-[#F05063]">RUN</span></h1></div>
-          <div className="flex gap-3 text-right"><div><p className="text-[10px] text-white/60 sm:text-xs">SCORE</p><p className="text-xl font-black tabular-nums sm:text-2xl">{score}</p></div><div className="border-l border-white/20 pl-3"><p className="text-[10px] text-white/60 sm:text-xs">PIÈCES</p><p className="text-xl font-black tabular-nums text-[#FBB040] sm:text-2xl">× {coins}</p></div></div>
+          <div className="flex items-end gap-3 text-right"><div><p className="text-[10px] text-white/60 sm:text-xs">SCORE</p><p className="text-xl font-black tabular-nums sm:text-2xl">{score}</p></div><div className="border-l border-white/20 pl-3"><p className="text-[10px] text-white/60 sm:text-xs">PIÈCES</p><p className="text-xl font-black tabular-nums text-[#FBB040] sm:text-2xl">× {coins}</p></div><button onClick={onExit} className="ml-1 min-h-10 rounded-xl border border-white/20 bg-white/10 px-3 text-xs font-bold text-white/80 transition-colors hover:bg-white/20 hover:text-white" aria-label="Quitter RDP Run">Quitter</button></div>
         </div>
         <div className="relative overflow-hidden rounded-3xl border-2 border-white/20 bg-[#29ABE2] shadow-2xl">
           <canvas ref={canvasRef} width={WIDTH} height={HEIGHT} onPointerDown={jump} className="block h-[75svh] min-h-[700px] w-full touch-manipulation object-cover object-left sm:h-auto sm:min-h-0 sm:object-contain" aria-label="RDP Run. Appuie pour sauter." />

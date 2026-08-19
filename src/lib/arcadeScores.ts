@@ -4,7 +4,7 @@ export interface PlayerRank {
   lastUpdated: string
 }
 
-export type ArcadeGameId = 'rdp-run' | 'quiz' | 'triki'
+export type ArcadeGameId = 'rdp-run' | 'quiz' | 'triki' | 'snake'
 
 export interface GameRank {
   name: string
