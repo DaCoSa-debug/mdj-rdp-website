@@ -7,15 +7,16 @@ const CELL = BOARD / SIZE
 
 type GameStatus = 'intro' | 'running' | 'over'
 type Direction = 'up' | 'down' | 'left' | 'right'
-type Difficulty = 'facile' | 'normal' | 'difficile'
+type Difficulty = 'facile' | 'moyen' | 'difficile' | 'extreme'
 interface Cell { x: number; y: number }
 interface SnakeData { body: Cell[]; food: Cell; direction: Direction; nextDirection: Direction }
 
 const OPPOSITE: Record<Direction, Direction> = { up: 'down', down: 'up', left: 'right', right: 'left' }
-const DIFFICULTIES: Record<Difficulty, { label: string; delay: number; description: string }> = {
-  facile: { label: 'Facile', delay: 190, description: 'Pour découvrir le jeu' },
-  normal: { label: 'Normal', delay: 145, description: 'Le rythme classique' },
-  difficile: { label: 'Difficile', delay: 105, description: 'Pour les rapides' },
+const DIFFICULTIES: Record<Difficulty, { label: string; delay: number; description: string; color: string }> = {
+  facile: { label: 'Facile', delay: 195, description: 'Pour découvrir le jeu', color: '#8DC63F' },
+  moyen: { label: 'Moyen', delay: 145, description: 'Le rythme classique', color: '#FBB040' },
+  difficile: { label: 'Difficile', delay: 105, description: 'Pour les rapides', color: '#F7941E' },
+  extreme: { label: 'Extrême', delay: 75, description: 'Réservé aux experts', color: '#F05063' },
 }
 
 function createFood(body: Cell[]): Cell {
@@ -35,7 +36,7 @@ export default function SnakeGame({ onExit }: { onExit: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const gameRef = useRef<SnakeData>(freshGame())
   const [status, setStatus] = useState<GameStatus>('intro')
-  const [difficulty, setDifficulty] = useState<Difficulty>('normal')
+  const [difficulty, setDifficulty] = useState<Difficulty>('moyen')
   const [score, setScore] = useState(0)
   const [best, setBest] = useState(() => getPlayerGameScore('snake', getSessionName()))
   const touchStart = useRef<Cell | null>(null)
@@ -146,12 +147,12 @@ export default function SnakeGame({ onExit }: { onExit: () => void }) {
       <div className="mx-auto max-w-xl">
         <div className="mb-4 flex items-end justify-between gap-3 text-white">
           <div><p className="text-xs font-black tracking-[.22em] text-[#9bbc0f]">MDJ ARCADE</p><h1 className="text-4xl font-black">SNAKE <span className="text-[#9bbc0f]">MDJ</span></h1></div>
-          <div className="flex items-end gap-3"><div className="text-right"><p className="text-[10px] font-bold tracking-widest text-white/50">{DIFFICULTIES[difficulty].label} · SCORE</p><p className="text-2xl font-black tabular-nums">{score}</p></div><button onClick={onExit} className="min-h-10 rounded-xl border border-white/20 bg-white/10 px-3 text-xs font-bold text-white/80 hover:bg-white/20">Quitter</button></div>
+          <div className="flex items-end gap-3"><div className="text-right"><p className="text-[10px] font-bold tracking-widest" style={{ color: DIFFICULTIES[difficulty].color }}>{DIFFICULTIES[difficulty].label.toUpperCase()} · SCORE</p><p className="text-2xl font-black tabular-nums">{score}</p></div><button onClick={onExit} className="min-h-10 rounded-xl border border-white/20 bg-white/10 px-3 text-xs font-bold text-white/80 hover:bg-white/20">Quitter</button></div>
         </div>
         <div className="relative overflow-hidden rounded-2xl border-[10px] border-[#0f380f] bg-[#9bbc0f] shadow-2xl shadow-black/40">
           <canvas ref={canvasRef} width={BOARD} height={BOARD} onPointerDown={onPointerDown} onPointerUp={onPointerUp} className="block w-full touch-none" aria-label="Snake MDJ. Glisse dans une direction pour jouer." />
           {status !== 'running' && <div className="absolute inset-0 flex items-center justify-center bg-[#0f380f]/80 p-6 text-center text-[#9bbc0f]">
-            {status === 'intro' ? <div><p className="font-mono text-sm font-bold tracking-[.2em]">SNAKE MDJ</p><h2 className="mt-2 font-mono text-3xl font-black">CHOISIS TON NIVEAU</h2><p className="mt-3 text-sm text-[#9bbc0f]/80">Glisse sur l’écran ou utilise les flèches.</p><div className="mt-5 grid gap-2"><button onClick={() => start('facile')} className="border-2 border-[#9bbc0f] px-5 py-2 text-left font-mono hover:bg-[#9bbc0f] hover:text-[#0f380f]"><strong>FACILE</strong> <span className="text-xs opacity-75">— {DIFFICULTIES.facile.description}</span></button><button onClick={() => start('normal')} className="border-2 border-[#9bbc0f] bg-[#9bbc0f] px-5 py-2 text-left font-mono font-black text-[#0f380f]"><strong>NORMAL</strong> <span className="text-xs opacity-70">— {DIFFICULTIES.normal.description}</span></button><button onClick={() => start('difficile')} className="border-2 border-[#9bbc0f] px-5 py-2 text-left font-mono hover:bg-[#9bbc0f] hover:text-[#0f380f]"><strong>DIFFICILE</strong> <span className="text-xs opacity-75">— {DIFFICULTIES.difficile.description}</span></button></div></div> : <div><p className="font-mono text-sm font-bold tracking-[.2em]">FIN DE PARTIE</p><h2 className="mt-2 font-mono text-3xl font-black">GAME OVER</h2><p className="mt-4 font-mono text-xl">Score : {score}</p><p className="mt-1 text-sm text-[#9bbc0f]/75">Meilleur score : {best}</p><button onClick={() => start()} className="mt-6 border-2 border-[#9bbc0f] bg-[#9bbc0f] px-7 py-3 font-mono font-black text-[#0f380f] hover:bg-transparent hover:text-[#9bbc0f]">REJOUER</button><button onClick={() => setStatus('intro')} className="mt-3 block w-full text-xs font-bold text-[#9bbc0f]/65 underline underline-offset-4">Changer de niveau</button></div>}
+            {status === 'intro' ? <div><p className="font-mono text-sm font-bold tracking-[.2em]">SNAKE MDJ</p><h2 className="mt-2 font-mono text-3xl font-black">CHOISIS TON NIVEAU</h2><p className="mt-3 text-sm text-[#9bbc0f]/80">Glisse sur l’écran ou utilise les flèches.</p><div className="mt-5 grid gap-2">{(Object.entries(DIFFICULTIES) as Array<[Difficulty, typeof DIFFICULTIES[Difficulty]]>).map(([key, level]) => <button key={key} onClick={() => start(key)} className="border-2 px-5 py-2 text-left font-mono transition-transform hover:scale-[1.02]" style={{ borderColor: level.color, color: level.color }}><strong>{level.label.toUpperCase()}</strong> <span className="text-xs text-[#9bbc0f]/75">— {level.description}</span></button>)}</div></div> : <div><p className="font-mono text-sm font-bold tracking-[.2em]">FIN DE PARTIE</p><h2 className="mt-2 font-mono text-3xl font-black">GAME OVER</h2><p className="mt-4 font-mono text-xl">Score : {score}</p><p className="mt-1 text-sm text-[#9bbc0f]/75">Meilleur score : {best}</p><button onClick={() => start()} className="mt-6 border-2 border-[#9bbc0f] bg-[#9bbc0f] px-7 py-3 font-mono font-black text-[#0f380f] hover:bg-transparent hover:text-[#9bbc0f]">REJOUER</button><button onClick={() => setStatus('intro')} className="mt-3 block w-full text-xs font-bold text-[#9bbc0f]/65 underline underline-offset-4">Changer de niveau</button></div>}
           </div>}
         </div>
         <div className="mx-auto mt-5 grid w-[216px] grid-cols-3 gap-0 sm:hidden">
