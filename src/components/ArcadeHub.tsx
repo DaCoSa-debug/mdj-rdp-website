@@ -12,10 +12,11 @@ const GAME_CARDS = [
   { id: 'quiz' as const, emoji: '🧠', title: 'Quiz MDJ', desc: '80 questions sur RDP, la culture et plus!', meta: 'Meilleur Quiz' },
   { id: 'triki' as const, emoji: '⭕❌', title: 'Triki MDJ', desc: 'Le classique X et O. Défie tes amis ou l\'ordi!', meta: 'Victoires contre IA' },
   { id: 'snake' as const, emoji: '🐍', title: 'Snake MDJ', desc: 'Le classique rétro. Mange, grandis et évite ta queue!', meta: 'Record hebdomadaire' },
+  { id: 'rdp-blocs' as const, emoji: '🧩', title: 'RDP Blocs', desc: 'Assemble les tuiles du quartier et complète les lignes!', meta: 'Record hebdomadaire' },
 ]
 
 interface ArcadeHubProps {
-  onSelectGame: (game: 'quiz' | 'triki' | 'rdp-run' | 'snake') => void
+  onSelectGame: (game: 'quiz' | 'triki' | 'rdp-run' | 'snake' | 'rdp-blocs') => void
   onEndSession: () => void
 }
 

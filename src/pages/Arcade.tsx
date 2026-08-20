@@ -7,10 +7,11 @@ import TrikiGame from '../components/TrikiGame'
 import ArcadeHub from '../components/ArcadeHub'
 import RdpRun from '../components/RdpRun'
 import SnakeGame from '../components/SnakeGame'
+import RdpBlocsGame from '../components/RdpBlocsGame'
 import NameEditor from '../components/NameEditor'
 import { getSessionName, startSession, endSession } from '../lib/arcadeScores'
 
-type SelectedGame = 'quiz' | 'triki' | 'rdp-run' | 'snake' | null
+type SelectedGame = 'quiz' | 'triki' | 'rdp-run' | 'snake' | 'rdp-blocs' | null
 
 const GRADIENT = 'linear-gradient(135deg, #FBB040, #F05063, #29ABE2)'
 
@@ -81,6 +82,7 @@ export default function Arcade() {
         {selectedGame === 'triki' && <TrikiGame />}
         {selectedGame === 'rdp-run' && <RdpRun onExit={exitGame} />}
         {selectedGame === 'snake' && <SnakeGame onExit={exitGame} />}
+        {selectedGame === 'rdp-blocs' && <RdpBlocsGame onExit={exitGame} />}
       </section>
       <Footer />
       <WhatsAppButton />
