@@ -37,7 +37,9 @@ export default function ShareScore({ playerName, score, gameName, challengeUrl, 
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="mt-2 rounded-3xl border border-white/10 bg-white/[0.04] p-4">
+      <p className="mb-3 text-center text-xs font-bold uppercase tracking-widest text-white/45">Partage ton défi</p>
+      <div className="flex flex-col gap-3">
       <button
         onClick={handleShare}
         disabled={isSharing}
@@ -53,6 +55,7 @@ export default function ShareScore({ playerName, score, gameName, challengeUrl, 
       >
         📸 Télécharger l'image
       </button>
+      </div>
       {feedback && <p className="text-center text-xs font-semibold text-[#FBB040]" role="status">{feedback}</p>}
     </div>
   )

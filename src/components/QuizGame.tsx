@@ -860,14 +860,14 @@ export default function QuizGame() {
             challengeText={`⚔️ Défi Quiz MDJ : ${playerName || 'Joueur'} a marqué ${score} pts en ${catDef?.label ?? 'Quiz MDJ'}. Peux-tu faire mieux?`}
           />
 
-          <div className="flex flex-col gap-3 w-full">
+          <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-6 w-full">
             <button
               onClick={() => setGameState('home')}
               className="flex items-center justify-center gap-2 w-full min-h-[56px] rounded-2xl font-bold text-white transition-opacity hover:opacity-90"
               style={{ background: `linear-gradient(135deg, ${BRAND.orange}, ${BRAND.pink})` }}
             >
               <RotateCcw size={18} />
-              Rejouer
+              Nouvelle partie
             </button>
             <button
               onClick={() => goToScores('result')}
@@ -882,12 +882,6 @@ export default function QuizGame() {
             </button>
           </div>
 
-          <button
-            onClick={() => setGameState('home')}
-            className="text-white/30 text-xs text-center mt-6 hover:text-white/60 underline underline-offset-2 transition-colors"
-          >
-            Changer de catégorie
-          </button>
         </div>
       </Shell>
     )
