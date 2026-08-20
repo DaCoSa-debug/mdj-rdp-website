@@ -10,7 +10,7 @@ type GameId = 'quiz' | 'triki' | 'rdp-run' | 'snake' | 'rdp-blocs'
 
 const GAME_CARDS = [
   { id: 'rdp-run' as GameId, emoji: '🏃', title: 'RDP Run', desc: 'Cours dans RDP, évite les obstacles et attrape les pièces!', meta: 'Record hebdomadaire' },
-  { id: 'quiz' as GameId, emoji: '🧠', title: 'Quiz MDJ', desc: '48 questions sur RDP, la culture et plus!', meta: 'Meilleur Quiz' },
+  { id: 'quiz' as GameId, emoji: '🧠', title: 'Quiz MDJ', desc: '130 questions, 13 thèmes et des défis!', meta: 'Meilleur Quiz' },
   { id: 'triki' as GameId, emoji: '⭕❌', title: 'Triki MDJ', desc: 'Le classique X et O. Défie tes amis ou l\'ordi!', meta: 'Victoires contre IA' },
   { id: 'snake' as GameId, emoji: '🐍', title: 'Snake MDJ', desc: 'Le classique rétro. Mange, grandis et évite ta queue!', meta: 'Record hebdomadaire' },
   { id: 'rdp-blocs' as GameId, emoji: '🧩', title: 'RDP Blocs', desc: 'Assemble les tuiles du quartier et complète les lignes!', meta: 'Record hebdomadaire' },
