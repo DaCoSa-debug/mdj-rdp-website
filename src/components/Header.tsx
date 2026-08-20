@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Menu, Search, Moon, Heart } from 'lucide-react'
+import { Menu, Heart } from 'lucide-react'
 import logo from '../assets/mdj-logo.png'
 
 const PINK = '#F05063'
@@ -76,33 +76,17 @@ export default function Header() {
             />
           </Link>
 
-          {/* RIGHT — search, dark mode, donation */}
+          {/* RIGHT — donation */}
           <div className="flex items-center justify-end gap-2">
-            <button
-              type="button"
-              aria-label="Rechercher"
-              className="inline-flex items-center justify-center rounded-lg p-2 text-[#3D3D3D] hover:bg-gray-100 transition-colors"
-            >
-              <Search size={20} />
-            </button>
-
-            <button
-              type="button"
-              aria-label="Passer en mode sombre"
-              className="inline-flex items-center justify-center rounded-lg p-2 text-[#3D3D3D] hover:bg-gray-100 transition-colors"
-            >
-              <Moon size={20} />
-            </button>
-
-            <a
-              href="/don"
+            <Link
+              to="/don"
               aria-label="Faire un don"
               className="hidden sm:inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold text-white transition-opacity hover:opacity-90"
               style={{ background: 'linear-gradient(135deg, #FBB040 0%, #F05063 100%)' }}
             >
               <Heart size={14} strokeWidth={2.5} />
               Faire un don
-            </a>
+            </Link>
           </div>
         </div>
       </div>
@@ -168,14 +152,14 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
-            <a
-              href="/don"
+            <Link
+              to="/don"
               className="mt-3 mb-1 inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-bold text-white"
               style={{ background: 'linear-gradient(135deg, #FBB040 0%, #F05063 100%)' }}
             >
               <Heart size={14} strokeWidth={2.5} />
               Faire un don
-            </a>
+            </Link>
           </nav>
         </div>
       )}

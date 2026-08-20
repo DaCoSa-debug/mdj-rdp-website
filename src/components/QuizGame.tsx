@@ -500,6 +500,7 @@ export default function QuizGame() {
   if (gameState === 'playing' && q) {
     return (
       <Shell>
+        <h1 className="sr-only">Quiz MDJ</h1>
         {/* Top bar */}
         <div className="flex items-center justify-between px-4 pt-6 pb-4 shrink-0 text-white">
           <span className="text-white/50 text-sm font-semibold">{current + 1} / {shuffled.length}</span>
@@ -600,6 +601,7 @@ export default function QuizGame() {
 
     return (
       <Shell>
+        <h1 className="sr-only">Quiz MDJ — Résultat</h1>
         <div className="flex flex-col items-center text-center flex-1 justify-center px-6 py-12 text-white">
           {/* Trophy circle */}
           <div
@@ -669,6 +671,7 @@ export default function QuizGame() {
 
     return (
       <Shell>
+        <h1 className="sr-only">Quiz MDJ — Classement</h1>
         <div className="flex flex-col flex-1 px-5 py-10 text-white">
           {/* Header row */}
           <div className="flex items-center justify-between mb-8">

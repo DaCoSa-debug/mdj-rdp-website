@@ -153,13 +153,13 @@ export default function EspaceParents() {
               >
                 Nous contacter
               </Link>
-              <a
-                href="tel:5140000000"
+              <Link
+                to="/contact"
                 className="inline-flex items-center rounded-full border-2 px-8 py-4 font-bold transition-colors hover:bg-pink-50"
                 style={{ borderColor: PINK, color: PINK }}
               >
-                Appeler la MDJ
-              </a>
+                Voir les coordonnées
+              </Link>
             </div>
           </div>
         </section>

@@ -44,6 +44,7 @@ function BoardCellItem({ value, position, isWinning, onClick }: CellProps) {
 export default function TrikiBoardScreen({ board, currentPlayer, winner, winningLine, scores, onCellClick, onReplay, onChangeMode, playerName, cumulativeScore }: BoardScreenProps) {
   return (
     <div className="bg-[#231F20] min-h-screen flex flex-col px-6 pt-8">
+      <h1 className="sr-only">Triki MDJ</h1>
       <div className="flex justify-center gap-8 mb-6">
         <span>
           <span className="font-black text-2xl" style={{ color: PINK }}>X</span>

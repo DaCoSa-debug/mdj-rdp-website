@@ -20,6 +20,7 @@ const HIGHLIGHT_CLASS =
 function DifficultyScreen({ onSelectAi, onBack }: DifficultyScreenProps) {
   return (
     <div className="bg-[#231F20] min-h-screen flex flex-col items-center justify-center px-6">
+      <h1 className="sr-only">Triki MDJ</h1>
       <span className="text-5xl mb-4">🤖</span>
       <h2 className="font-black text-3xl text-white mb-2">Difficulté</h2>
       <p className="text-white/60 mb-10">Choisis ton adversaire</p>

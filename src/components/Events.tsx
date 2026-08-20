@@ -1,5 +1,6 @@
 import { Trophy, Music2, Utensils, Rocket, MapPin, Clock } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const PINK   = '#F05063'
 const ORANGE = '#FBB040'
@@ -89,13 +90,13 @@ export default function Events() {
               Ce mois-ci à la MDJ.
             </h2>
           </div>
-          <a
-            href="#"
+          <Link
+            to="/evenements"
             className="mt-2 text-sm font-semibold whitespace-nowrap hover:opacity-70 transition-opacity"
             style={{ color: PINK }}
           >
             Voir tout le calendrier →
-          </a>
+          </Link>
         </div>
 
         {/* Event rows */}
@@ -132,12 +133,12 @@ export default function Events() {
               </div>
 
               {/* Register button */}
-              <a
-                href="#"
+              <Link
+                to="/contact"
                 className="ml-auto flex-shrink-0 border border-gray-200 rounded-full px-5 py-2 text-sm font-semibold text-gray-700 hover:border-[#F05063] hover:text-[#F05063] transition-colors whitespace-nowrap"
               >
                 S'inscrire →
-              </a>
+              </Link>
             </div>
           ))}
         </div>

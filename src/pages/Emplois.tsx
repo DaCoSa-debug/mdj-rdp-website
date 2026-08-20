@@ -102,13 +102,13 @@ export default function Emplois() {
                     </span>
                   </div>
                   <p className="mt-4 text-gray-600 text-sm leading-relaxed">{description}</p>
-                  <a
-                    href="#"
+                  <Link
+                    to="/contact"
                     className="mt-4 inline-block text-sm font-semibold hover:opacity-70 transition-opacity"
                     style={{ color: PINK }}
                   >
                     {ctaLabel}
-                  </a>
+                  </Link>
                 </div>
               ))}
             </div>

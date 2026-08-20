@@ -11,6 +11,7 @@ import EspaceParents from './pages/EspaceParents'
 import Emplois from './pages/Emplois'
 import Arcade from './pages/Arcade'
 import Contact from './pages/Contact'
+import Don from './pages/Don'
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
         <Route path="/emplois" element={<Emplois />} />
         <Route path="/arcade" element={<Arcade />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/don" element={<Don />} />
       </Routes>
     </BrowserRouter>
   )

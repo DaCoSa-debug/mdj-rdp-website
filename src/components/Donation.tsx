@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Heart } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const PINK   = '#F05063'
 const ORANGE = '#FBB040'
@@ -90,13 +91,13 @@ export default function Donation() {
             </div>
 
             {/* CTA */}
-            <button
-              type="button"
+            <Link
+              to="/contact"
               className="mt-8 w-full rounded-full py-4 text-lg font-bold transition-colors hover:bg-gray-50"
               style={{ background: '#fff', color: PINK }}
             >
-              Faire un don maintenant
-            </button>
+              Nous contacter pour faire un don
+            </Link>
           </div>
 
           {/* RIGHT — impact stat cards */}

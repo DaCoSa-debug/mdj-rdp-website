@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { CheckCircle2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const ORANGE = '#FBB040'
 
@@ -121,13 +122,13 @@ export default function Programs() {
             </div>
 
             {/* CTA */}
-            <a
-              href="#"
+            <Link
+              to="/activites"
               className="inline-block mt-6 text-sm font-semibold hover:opacity-70 transition-opacity"
               style={{ color: ORANGE }}
             >
               Voir toutes les activités →
-            </a>
+            </Link>
           </div>
 
         </div>

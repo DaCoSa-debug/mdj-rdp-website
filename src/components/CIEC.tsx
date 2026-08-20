@@ -34,19 +34,19 @@ export default function CIEC() {
 
             {/* CTA buttons */}
             <div className="mt-8 flex flex-wrap gap-4">
-              <a
-                href="#"
+              <Link
+                to="/ciec#savoir-plus"
                 className="inline-flex items-center rounded-full bg-white px-8 py-4 font-bold transition-opacity hover:opacity-90"
                 style={{ color: PINK }}
               >
                 En savoir plus
-              </a>
-              <a
-                href="#"
+              </Link>
+              <Link
+                to="/ciec#postuler"
                 className="inline-flex items-center rounded-full border-2 border-white bg-transparent px-8 py-4 font-bold text-white transition-opacity hover:opacity-80"
               >
                 Postuler à l'édition 2026
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -77,3 +77,4 @@ export default function CIEC() {
     </section>
   )
 }
+import { Link } from 'react-router-dom'

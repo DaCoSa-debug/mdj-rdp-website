@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import WhatsAppButton from '../components/WhatsAppButton'
@@ -110,13 +111,13 @@ export default function Evenements() {
                     </div>
 
                     {/* Register */}
-                    <a
-                      href="#"
+                    <Link
+                      to="/contact"
                       className="ml-auto shrink-0 text-sm font-semibold whitespace-nowrap hover:opacity-70 transition-opacity"
                       style={{ color: PINK }}
                     >
                       S'inscrire →
-                    </a>
+                    </Link>
                   </div>
                 ))}
               </div>

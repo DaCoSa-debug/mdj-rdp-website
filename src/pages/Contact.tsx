@@ -12,15 +12,15 @@ const infoCards = [
     Icon:    Phone,
     color:   PINK,
     title:   'Téléphone',
-    detail:  '(514) 000-0000',
-    sub:     'Lun–Ven, 9h–17h',
+    detail:  'Coordonnées à confirmer',
+    sub:     'Consultez les canaux officiels de la MDJ',
   },
   {
     Icon:    Mail,
     color:   ORANGE,
     title:   'Courriel',
-    detail:  'info@mdjrdp.com',
-    sub:     'Réponse sous 48h',
+    detail:  'Courriel à confirmer',
+    sub:     'Consultez les canaux officiels de la MDJ',
   },
   {
     Icon:    MapPin,
@@ -97,11 +97,12 @@ export default function Contact() {
                     className={selectStyle}
                   />
                   <button
-                    type="submit"
-                    className="mt-2 w-full rounded-full py-4 font-bold text-lg text-white transition-opacity hover:opacity-90"
+                    type="button"
+                    disabled
+                    className="mt-2 w-full cursor-not-allowed rounded-full py-4 font-bold text-lg text-white opacity-60"
                     style={{ background: `linear-gradient(135deg, ${ORANGE}, ${PINK})` }}
                   >
-                    Envoyer le message
+                    Formulaire en préparation
                   </button>
                 </form>
                 <p className="mt-4 text-xs text-gray-400 text-center">
@@ -133,15 +134,7 @@ export default function Contact() {
                   <div className="flex-1">
                     <p className="font-bold text-gray-900">WhatsApp</p>
                     <p className="text-gray-500 text-sm">Écris-nous directement!</p>
-                    <a
-                      href="https://wa.me/15140000000"
-                      className="text-sm font-semibold mt-1 inline-block hover:opacity-70 transition-opacity"
-                      style={{ color: '#25D366' }}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Ouvrir WhatsApp →
-                    </a>
+                    <p className="mt-1 text-sm font-semibold" style={{ color: '#25D366' }}>Le lien WhatsApp sera ajouté avec le numéro officiel.</p>
                   </div>
                 </div>
               </div>

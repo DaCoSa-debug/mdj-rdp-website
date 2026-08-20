@@ -92,13 +92,7 @@ export default function Actualites() {
                     3 min de lecture
                   </span>
                 </div>
-                <a
-                  href="#"
-                  className="mt-6 inline-block font-semibold hover:opacity-70 transition-opacity"
-                  style={{ color: PINK }}
-                >
-                  Lire l'article complet →
-                </a>
+                <p className="mt-6 text-sm font-semibold" style={{ color: PINK }}>Article détaillé bientôt disponible</p>
               </div>
 
             </div>
@@ -120,13 +114,7 @@ export default function Actualites() {
                     <h3 className="font-bold text-gray-900 mt-3 leading-snug">{title}</h3>
                     <p className="text-gray-500 text-sm mt-2">{excerpt}</p>
                     <p className="text-gray-400 text-xs mt-3">{meta}</p>
-                    <a
-                      href="#"
-                      className="mt-4 inline-block font-semibold text-sm hover:opacity-70 transition-opacity"
-                      style={{ color: PINK }}
-                    >
-                      Lire →
-                    </a>
+                    <p className="mt-4 text-sm font-semibold" style={{ color: PINK }}>Article détaillé bientôt disponible</p>
                   </div>
                 </div>
               ))}
