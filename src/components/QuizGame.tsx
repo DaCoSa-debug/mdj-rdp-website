@@ -482,7 +482,7 @@ function getQuizChallenge(): QuizChallenge | null {
   const challenger = params.get('from')?.trim().slice(0, 14)
   const target = Number(params.get('target'))
   if (!challenger || !categories.some(item => item.id === category) || !Number.isFinite(target) || target < 1) return null
-  return { challenger, target: Math.min(Math.round(target), 1200), category: category as CategoryId }
+  return { challenger, target: Math.min(Math.round(target), PRIZE_LADDER[PRIZE_LADDER.length - 1]), category: category as CategoryId }
 }
 
 export default function QuizGame() {
@@ -642,7 +642,7 @@ export default function QuizGame() {
           {challenge && challengeCategory && (
             <div className="mb-6 rounded-2xl border-2 px-5 py-4 text-center" style={{ borderColor: `${challengeCategory.color}80`, background: `${challengeCategory.color}18` }}>
               <p className="text-xs font-bold uppercase tracking-widest text-white/55">Défi reçu</p>
-              <p className="mt-1 text-sm text-white"><strong>{challenge.challenger}</strong> a marqué <strong style={{ color: BRAND.yellow }}>{challenge.target} pts</strong></p>
+              <p className="mt-1 text-sm text-white"><strong>{challenge.challenger}</strong> a marqué <strong style={{ color: BRAND.yellow }}>{challenge.target} XP</strong></p>
               <p className="mt-1 text-xs text-white/60">{challengeCategory.emoji} {challengeCategory.label}</p>
               <button onClick={() => startGame(challenge.category)} className="mt-3 min-h-[48px] w-full rounded-xl px-4 text-sm font-black text-white" style={{ background: `linear-gradient(135deg, ${challengeCategory.color}, ${BRAND.pink})` }}>
                 Relever le défi ⚔️
@@ -857,7 +857,7 @@ export default function QuizGame() {
             score={score}
             gameName="Quiz MDJ"
             challengeUrl={`${window.location.origin}/arcade?game=quiz&theme=${selectedCat ?? 'rdp'}&target=${score}&from=${encodeURIComponent(playerName || 'Joueur')}`}
-            challengeText={`⚔️ Défi Quiz MDJ : ${playerName || 'Joueur'} a marqué ${score} pts en ${catDef?.label ?? 'Quiz MDJ'}. Peux-tu faire mieux?`}
+            challengeText={`⚔️ Défi Quiz MDJ : ${playerName || 'Joueur'} a marqué ${score} XP en ${catDef?.label ?? 'Quiz MDJ'}. Peux-tu faire mieux?`}
           />
 
           <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-6 w-full">
