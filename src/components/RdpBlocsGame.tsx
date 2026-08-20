@@ -7,8 +7,15 @@ const CELL = 36
 const WIDTH = COLS * CELL
 const HEIGHT = ROWS * CELL
 const COLORS = ['#FBB040', '#F05063', '#29ABE2', '#8DC63F', '#F7941E']
+const DIFFICULTIES: Record<Difficulty, { label: string; delay: number; color: string; description: string }> = {
+  facile: { label: 'Facile', delay: 830, color: '#8DC63F', description: 'Pour découvrir le quartier' },
+  moyen: { label: 'Moyen', delay: 660, color: '#FBB040', description: 'Le rythme classique' },
+  difficile: { label: 'Difficile', delay: 490, color: '#F7941E', description: 'Pour les rapides' },
+  extreme: { label: 'Extrême', delay: 340, color: '#F05063', description: 'Réservé aux experts' },
+}
 
 type GameStatus = 'intro' | 'running' | 'over'
+type Difficulty = 'facile' | 'moyen' | 'difficile' | 'extreme'
 interface Point { x: number; y: number }
 interface BoardBlock extends Point { color: string }
 interface Piece { shape: Point[]; x: number; y: number; color: string }
@@ -51,6 +58,7 @@ export default function RdpBlocsGame({ onExit }: { onExit: () => void }) {
   const statusRef = useRef<GameStatus>('intro')
   const scoreRef = useRef(0)
   const [status, setStatus] = useState<GameStatus>('intro')
+  const [difficulty, setDifficulty] = useState<Difficulty>('moyen')
   const [score, setScore] = useState(0)
   const [lines, setLines] = useState(0)
   const [best, setBest] = useState(() => getPlayerGameScore('rdp-blocs', getSessionName()))
@@ -134,8 +142,9 @@ export default function RdpBlocsGame({ onExit }: { onExit: () => void }) {
     lockPiece()
   }
 
-  function start(): void {
+  function start(selectedDifficulty = difficulty): void {
     gameRef.current = freshGame()
+    setDifficulty(selectedDifficulty)
     scoreRef.current = 0
     setScore(0)
     setLines(0)
@@ -147,9 +156,9 @@ export default function RdpBlocsGame({ onExit }: { onExit: () => void }) {
   useEffect(() => { draw() }, [])
   useEffect(() => {
     if (status !== 'running') return
-    const timer = window.setInterval(moveDown, Math.max(260, 760 - lines * 22))
+    const timer = window.setInterval(moveDown, Math.max(220, DIFFICULTIES[difficulty].delay - lines * 18))
     return () => window.clearInterval(timer)
-  }, [lines, status])
+  }, [difficulty, lines, status])
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const actions: Record<string, () => void> = { ArrowLeft: () => move(-1), ArrowRight: () => move(1), ArrowUp: turn, ArrowDown: moveDown, ' ': drop }
@@ -166,9 +175,9 @@ export default function RdpBlocsGame({ onExit }: { onExit: () => void }) {
     <div className="min-h-screen bg-[#231F20] px-4 py-8 sm:px-6 sm:py-10">
       <div className="mx-auto max-w-sm">
         <div className="mb-4 flex items-end justify-between gap-3 text-white"><div><p className="text-xs font-black tracking-[.22em] text-[#FBB040]">MDJ ARCADE</p><h1 className="text-4xl font-black">RDP <span className="text-[#FBB040]">BLOCS</span></h1></div><button onClick={onExit} className="min-h-10 rounded-xl border border-white/20 bg-white/10 px-3 text-xs font-bold text-white/80 hover:bg-white/20">Quitter</button></div>
-        <div className="mb-3 flex justify-between rounded-2xl bg-white/5 px-5 py-3 text-white"><span><small className="block text-[10px] font-bold tracking-widest text-white/45">SCORE</small><strong className="text-xl">{score}</strong></span><span className="text-right"><small className="block text-[10px] font-bold tracking-widest text-white/45">LIGNES</small><strong className="text-xl text-[#FBB040]">{lines}</strong></span></div>
-        <div className="relative overflow-hidden rounded-3xl border-4 border-[#FBB040] bg-[#18222c] shadow-2xl"><canvas ref={canvasRef} width={WIDTH} height={HEIGHT} className="block w-full" aria-label="RDP Blocs" />
-          {status !== 'running' && <div className="absolute inset-0 flex items-center justify-center bg-[#18222c]/90 p-6 text-center text-white">{status === 'intro' ? <div><p className="text-xs font-black tracking-[.2em] text-[#FBB040]">PUZZLE RÉTRO</p><h2 className="mt-2 text-4xl font-black">RDP BLOCS</h2><p className="mt-3 text-sm text-white/65">Assemble les tuiles et complète les lignes du quartier.</p><button onClick={start} className="mt-6 rounded-full bg-[#FBB040] px-8 py-3 font-black text-[#231F20]">JOUER</button></div> : <div><p className="text-xs font-black tracking-[.2em] text-[#F05063]">FIN DE PARTIE</p><h2 className="mt-2 text-4xl font-black">GAME OVER</h2><p className="mt-4 text-xl">Score : <strong>{score}</strong></p><p className="text-sm text-white/60">Meilleur score : {best}</p><button onClick={start} className="mt-6 rounded-full bg-[#FBB040] px-8 py-3 font-black text-[#231F20]">REJOUER</button></div>}</div>}
+        <div className="mb-3 flex justify-between rounded-2xl bg-white/5 px-5 py-3 text-white"><span><small className="block text-[10px] font-bold tracking-widest text-white/45">SCORE</small><strong className="text-xl">{score}</strong></span><span className="text-center"><small className="block text-[10px] font-bold tracking-widest text-white/45">NIVEAU</small><strong className="text-sm" style={{ color: DIFFICULTIES[difficulty].color }}>{DIFFICULTIES[difficulty].label.toUpperCase()}</strong></span><span className="text-right"><small className="block text-[10px] font-bold tracking-widest text-white/45">LIGNES</small><strong className="text-xl text-[#FBB040]">{lines}</strong></span></div>
+        <div className="relative overflow-hidden rounded-3xl border-4 bg-[#18222c] shadow-2xl" style={{ borderColor: DIFFICULTIES[difficulty].color }}><canvas ref={canvasRef} width={WIDTH} height={HEIGHT} className="block w-full" aria-label="RDP Blocs" />
+          {status !== 'running' && <div className="absolute inset-0 flex items-center justify-center bg-[#18222c]/90 p-6 text-center text-white">{status === 'intro' ? <div><p className="text-xs font-black tracking-[.2em] text-[#FBB040]">PUZZLE RÉTRO</p><h2 className="mt-2 text-4xl font-black">RDP BLOCS</h2><p className="mt-3 text-sm text-white/65">Choisis ton niveau et complète les lignes du quartier.</p><div className="mt-5 grid gap-2">{(Object.entries(DIFFICULTIES) as Array<[Difficulty, typeof DIFFICULTIES[Difficulty]]>).map(([key, level]) => <button key={key} onClick={() => start(key)} className="border-2 px-5 py-2 text-left font-black transition-transform hover:scale-[1.02]" style={{ borderColor: level.color, color: level.color }}>{level.label.toUpperCase()} <span className="text-xs font-normal text-white/60">— {level.description}</span></button>)}</div></div> : <div><p className="text-xs font-black tracking-[.2em] text-[#F05063]">FIN DE PARTIE</p><h2 className="mt-2 text-4xl font-black">GAME OVER</h2><p className="mt-4 text-xl">Score : <strong>{score}</strong></p><p className="text-sm text-white/60">Meilleur score : {best}</p><button onClick={() => start()} className="mt-6 rounded-full bg-[#FBB040] px-8 py-3 font-black text-[#231F20]">REJOUER</button><button onClick={() => setStatus('intro')} className="mt-3 block w-full text-xs font-bold text-white/55 underline underline-offset-4">Changer de niveau</button></div>}</div>}
         </div>
         <div className="mt-5 grid grid-cols-4 gap-2 sm:hidden"><span />{control('↻', turn)}<span /><span />{control('←', () => move(-1))}{control('→', () => move(1))}<span />{control('▼', moveDown)}{control('⤓', drop, true)}<span /></div>
         <p className="mt-4 text-center text-xs text-white/50">Mobile : boutons tactiles · Ordinateur : flèches, ↑ tourne et espace descend.</p>
