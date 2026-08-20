@@ -448,6 +448,15 @@ function shuffle<T>(arr: T[]): T[] {
   return [...arr].sort(() => Math.random() - 0.5)
 }
 
+function randomizeAnswers(question: Question): Question {
+  const choices = shuffle(question.options.map((option, index) => ({ option, index })))
+  return {
+    ...question,
+    options: choices.map(choice => choice.option),
+    correct: choices.findIndex(choice => choice.index === question.correct),
+  }
+}
+
 /* ── Shell wrapper ──────────────────────────────────────────────── */
 function Shell({ children }: { children: React.ReactNode }) {
   return (
@@ -487,6 +496,7 @@ export default function QuizGame() {
   const [timeLeft, setTimeLeft]           = useState(getTimeForQuestion(0))
   const [isAnswered, setIsAnswered]       = useState(false)
   const [selected, setSelected]           = useState<number | null>(null)
+  const [pendingAnswer, setPendingAnswer] = useState<number | null>(null)
   const [fiftyUsed, setFiftyUsed]         = useState(false)
   const [timeUsed, setTimeUsed]           = useState(false)
   const [switchUsed, setSwitchUsed]       = useState(false)
@@ -506,7 +516,7 @@ export default function QuizGame() {
   function startGame(catId: CategoryId) {
     setSelectedCat(catId)
     const pool = ALL_QUESTIONS.filter(q => q.category === catId)
-    const qs = shuffle(pool.length >= ROUND_LENGTH ? pool : [...pool, ...ALL_QUESTIONS.filter(q => q.category !== catId)]).slice(0, ROUND_LENGTH)
+    const qs = shuffle(pool.length >= ROUND_LENGTH ? pool : [...pool, ...ALL_QUESTIONS.filter(q => q.category !== catId)]).slice(0, ROUND_LENGTH).map(randomizeAnswers)
     setShuffled(qs)
     setCurrent(0)
     setScore(0)
@@ -514,6 +524,7 @@ export default function QuizGame() {
     setTimeLeft(getTimeForQuestion(0))
     setIsAnswered(false)
     setSelected(null)
+    setPendingAnswer(null)
     setFiftyUsed(false)
     setTimeUsed(false)
     setSwitchUsed(false)
@@ -533,12 +544,20 @@ export default function QuizGame() {
     }
   }
 
+  function confirmAnswer(): void {
+    if (pendingAnswer === null || !q || isAnswered) return
+    const answer = pendingAnswer
+    handleAnswer(answer)
+    if (answer === q.correct) window.setTimeout(nextQuestion, 900)
+  }
+
   function nextQuestion() {
     if (current + 1 >= shuffled.length) { endGame(PRIZE_LADDER[current]); return }
     setCurrent(c => c + 1)
     setTimeLeft(getTimeForQuestion(current + 1))
     setIsAnswered(false)
     setSelected(null)
+    setPendingAnswer(null)
     setEliminated([])
   }
 
@@ -567,7 +586,7 @@ export default function QuizGame() {
     if (switchUsed || isAnswered || !q) return
     const replacement = shuffle(ALL_QUESTIONS.filter(question => !shuffled.some(used => used.question === question.question)))[0]
     if (!replacement) return
-    setShuffled(questions => questions.map((question, index) => index === current ? replacement : question))
+    setShuffled(questions => questions.map((question, index) => index === current ? randomizeAnswers(replacement) : question))
     setEliminated([])
     setSwitchUsed(true)
   }
@@ -672,12 +691,12 @@ export default function QuizGame() {
       <Shell>
         <h1 className="sr-only">Quiz MDJ</h1>
         {/* Top bar */}
-        <div className="flex items-center justify-between px-4 pt-6 pb-4 shrink-0 text-white">
-            <span className="text-white/50 text-sm font-semibold">{current + 1} / {shuffled.length}</span>
+        <div className="flex items-center justify-between px-4 pt-4 pb-3 shrink-0 text-white">
+          <span className="text-white/50 text-sm font-semibold">{current + 1} / {shuffled.length}</span>
           <div className="flex items-center gap-1.5">
             {questionCat && <span className="text-base">{questionCat.emoji}</span>}
-            <Clock size={15} style={{ color: timerColor }} />
-            <span className="font-black text-lg tabular-nums" style={{ color: timerColor }}>{timeLeft}</span>
+            <Clock size={18} style={{ color: timerColor }} />
+            <span className="font-black text-xl tabular-nums" style={{ color: timerColor }}>{timeLeft}s</span>
           </div>
           <span className="font-bold" style={{ color: BRAND.yellow }}>★ {score} XP</span>
         </div>
@@ -690,10 +709,10 @@ export default function QuizGame() {
           />
         </div>
 
-        <div className="mx-4 mt-4 grid grid-cols-2 gap-2">
-          <button onClick={useFifty} disabled={fiftyUsed || isAnswered} className="min-h-[44px] rounded-xl border px-3 text-xs font-black disabled:opacity-35" style={{ borderColor: `${BRAND.blue}80`, background: `${BRAND.blue}18`, color: BRAND.blue }}>50 / 50</button>
-          <button onClick={useExtraTime} disabled={timeUsed || isAnswered} className="min-h-[44px] rounded-xl border px-3 text-xs font-black disabled:opacity-35" style={{ borderColor: `${BRAND.yellow}80`, background: `${BRAND.yellow}18`, color: BRAND.yellow }}>+10 secondes</button>
-          <button onClick={useSwitch} disabled={switchUsed || isAnswered} className="col-span-2 min-h-[44px] rounded-xl border px-3 text-xs font-black disabled:opacity-35" style={{ borderColor: `${BRAND.pink}80`, background: `${BRAND.pink}18`, color: BRAND.pink }}>↻ Switch: une question surprise</button>
+        <div className="mx-4 mt-3 grid grid-cols-3 gap-2">
+          <button onClick={useFifty} disabled={fiftyUsed || isAnswered} className="min-h-[40px] rounded-xl border px-2 text-[10px] font-black disabled:opacity-35" style={{ borderColor: `${BRAND.blue}80`, background: `${BRAND.blue}18`, color: BRAND.blue }}>50 / 50</button>
+          <button onClick={useExtraTime} disabled={timeUsed || isAnswered} className="min-h-[40px] rounded-xl border px-2 text-[10px] font-black disabled:opacity-35" style={{ borderColor: `${BRAND.yellow}80`, background: `${BRAND.yellow}18`, color: BRAND.yellow }}>+10 s</button>
+          <button onClick={useSwitch} disabled={switchUsed || isAnswered} className="min-h-[40px] rounded-xl border px-2 text-[10px] font-black disabled:opacity-35" style={{ borderColor: `${BRAND.pink}80`, background: `${BRAND.pink}18`, color: BRAND.pink }}>↻ Switch</button>
         </div>
 
         <div className="mx-4 mt-3 grid grid-cols-5 gap-1" aria-label="Échelle des récompenses">
@@ -705,18 +724,18 @@ export default function QuizGame() {
         </div>
 
         {/* Question + answers */}
-        <div className="flex-1 flex flex-col justify-between px-4 py-5 text-white">
+        <div className="flex-1 px-4 py-3 text-white">
           <div
-            className="rounded-3xl p-6 mb-5"
+            className="rounded-3xl p-4 mb-3"
             style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.10)' }}
           >
-            <p className="text-xs uppercase tracking-widest font-semibold mb-3" style={{ color: catColor }}>
+            <p className="text-xs uppercase tracking-widest font-semibold mb-2" style={{ color: catColor }}>
               {questionCat?.label ?? 'Question'} · palier {PRIZE_LADDER[current]} XP
             </p>
-            <p className="font-bold text-lg leading-snug text-white">{q.question}</p>
+            <p className="font-bold text-base leading-snug text-white">{q.question}</p>
           </div>
 
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
             {q.options.map((opt, i) => {
               let bg        = 'rgba(255,255,255,0.10)'
               let border    = 'rgba(255,255,255,0.10)'
@@ -734,10 +753,10 @@ export default function QuizGame() {
               return (
                 <button
                   key={i}
-                  onClick={() => handleAnswer(i)}
+                  onClick={() => setPendingAnswer(i)}
                   disabled={isAnswered || isEliminated}
-                  className="flex items-center gap-4 w-full min-h-[56px] rounded-2xl px-5 py-4 text-left font-semibold transition-all disabled:cursor-not-allowed"
-                  style={{ background: isEliminated ? 'rgba(255,255,255,0.03)' : bg, border: `2px solid ${isEliminated ? 'rgba(255,255,255,0.04)' : border}`, color: isEliminated ? 'rgba(255,255,255,0.22)' : textColor }}
+                  className="flex items-center gap-4 w-full min-h-[52px] rounded-2xl px-4 py-3 text-left font-semibold transition-all disabled:cursor-not-allowed"
+                  style={{ background: isEliminated ? 'rgba(255,255,255,0.03)' : pendingAnswer === i && !isAnswered ? `${catColor}30` : bg, border: `2px solid ${isEliminated ? 'rgba(255,255,255,0.04)' : pendingAnswer === i && !isAnswered ? catColor : border}`, color: isEliminated ? 'rgba(255,255,255,0.22)' : textColor }}
                 >
                   <span
                     className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-black shrink-0"
@@ -753,27 +772,42 @@ export default function QuizGame() {
             })}
           </div>
 
+          <div className="mt-3 min-h-[82px]">
+          {!isAnswered && pendingAnswer !== null && (
+            <div className="rounded-2xl border border-white/15 bg-white/5 p-3 text-center">
+              <p className="text-sm font-bold text-white">Tu choisis « {q.options[pendingAnswer]} ». C’est ton choix final?</p>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <button onClick={() => setPendingAnswer(null)} className="min-h-[44px] rounded-xl border border-white/20 text-sm font-bold text-white/70">Modifier</button>
+                <button onClick={confirmAnswer} className="min-h-[44px] rounded-xl text-sm font-black text-white" style={{ background: `linear-gradient(135deg, ${BRAND.orange}, ${BRAND.pink})` }}>Confirmer</button>
+              </div>
+            </div>
+          )}
           {isAnswered && (
-            <div className="mt-5">
+            <div>
               <p className="text-center text-sm font-semibold mb-3" style={{ color: selected === q.correct ? BRAND.green : BRAND.pink }}>
                 {selected === q.correct
                   ? `Bravo! Tu passes à ${PRIZE_LADDER[Math.min(current + 1, PRIZE_LADDER.length - 1)]} XP.`
                   : selected === -1 ? `Temps écoulé! Tu gardes ${safeScore} XP.` : `Mauvaise réponse! Tu gardes ${safeScore} XP.`}
               </p>
-              <button
-                onClick={selected === q.correct ? nextQuestion : () => endGame(safeScore)}
-                className="w-full min-h-[56px] rounded-2xl font-bold text-white transition-opacity hover:opacity-90"
-                style={{ background: `linear-gradient(135deg, ${BRAND.orange}, ${BRAND.pink})` }}
-              >
-                {selected !== q.correct ? 'Voir mes résultats' : current + 1 >= shuffled.length ? 'Encaisser 10 000 XP' : 'Question suivante →'}
-              </button>
+              {selected === q.correct ? (
+                <p className="min-h-[56px] rounded-2xl px-4 pt-4 text-center text-sm font-bold text-white/75">Question suivante…</p>
+              ) : (
+                <button
+                  onClick={() => endGame(safeScore)}
+                  className="w-full min-h-[56px] rounded-2xl font-bold text-white transition-opacity hover:opacity-90"
+                  style={{ background: `linear-gradient(135deg, ${BRAND.orange}, ${BRAND.pink})` }}
+                >
+                  Voir mes résultats
+                </button>
+              )}
             </div>
           )}
           {!isAnswered && score > 0 && (
-            <button onClick={() => endGame(score)} className="mt-4 min-h-[44px] text-center text-xs font-bold text-white/45 underline underline-offset-4 hover:text-white">
+            <button onClick={() => endGame(score)} className="mt-2 min-h-[40px] text-center text-xs font-bold text-white/45 underline underline-offset-4 hover:text-white">
               Encaisser {score} XP et quitter
             </button>
           )}
+          </div>
         </div>
       </Shell>
     )
