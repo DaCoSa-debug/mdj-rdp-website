@@ -35,6 +35,7 @@ function freshGame(): SnakeData {
 export default function SnakeGame({ onExit }: { onExit: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const gameRef = useRef<SnakeData>(freshGame())
+  const difficultyRef = useRef<Difficulty>('moyen')
   const [status, setStatus] = useState<GameStatus>('intro')
   const [difficulty, setDifficulty] = useState<Difficulty>('moyen')
   const [score, setScore] = useState(0)
@@ -46,7 +47,8 @@ export default function SnakeGame({ onExit }: { onExit: () => void }) {
     const context = canvas?.getContext('2d')
     if (!context) return
     const game = gameRef.current
-    context.fillStyle = '#9bbc0f'
+    const boardColor = DIFFICULTIES[difficultyRef.current].color
+    context.fillStyle = boardColor
     context.fillRect(0, 0, BOARD, BOARD)
     context.strokeStyle = 'rgba(15, 40, 10, .14)'
     context.lineWidth = 1
@@ -61,7 +63,7 @@ export default function SnakeGame({ onExit }: { onExit: () => void }) {
       context.fillRect(part.x * CELL + 2, part.y * CELL + 2, CELL - 4, CELL - 4)
     })
     const head = game.body[0]
-    context.fillStyle = '#9bbc0f'
+    context.fillStyle = boardColor
     const eyeOffset = game.direction === 'left' ? 5 : game.direction === 'right' ? CELL - 9 : CELL / 2 - 2
     const eyeY = game.direction === 'up' ? 5 : game.direction === 'down' ? CELL - 9 : CELL / 2 - 2
     context.fillRect(head.x * CELL + eyeOffset, head.y * CELL + eyeY, 4, 4)
@@ -98,6 +100,7 @@ export default function SnakeGame({ onExit }: { onExit: () => void }) {
 
   const start = useCallback((selectedDifficulty = difficulty) => {
     gameRef.current = freshGame()
+    difficultyRef.current = selectedDifficulty
     setDifficulty(selectedDifficulty)
     setScore(0)
     setStatus('running')
@@ -140,7 +143,7 @@ export default function SnakeGame({ onExit }: { onExit: () => void }) {
     touchStart.current = null
   }
 
-  const dPad = (direction: Direction, label: string, className = '') => <button key={direction} onClick={() => setDirection(direction)} className={`flex h-[72px] w-[72px] items-center justify-center border-[3px] border-[#0f380f] bg-[#8bac0f] text-3xl font-black text-[#0f380f] active:bg-[#0f380f] active:text-[#9bbc0f] ${className}`} aria-label={label}>{label}</button>
+  const dPad = (direction: Direction, label: string, className = '') => <button key={direction} onPointerDown={event => { event.preventDefault(); setDirection(direction) }} className={`flex h-[84px] w-[84px] touch-manipulation items-center justify-center border-[3px] border-[#0f380f] bg-[#8bac0f] text-4xl font-black text-[#0f380f] active:bg-[#0f380f] active:text-[#9bbc0f] ${className}`} aria-label={label}>{label}</button>
 
   return (
     <div className="min-h-screen bg-[#231F20] px-4 py-8 sm:px-6 sm:py-10">
@@ -149,13 +152,13 @@ export default function SnakeGame({ onExit }: { onExit: () => void }) {
           <div><p className="text-xs font-black tracking-[.22em] text-[#9bbc0f]">MDJ ARCADE</p><h1 className="text-4xl font-black">SNAKE <span className="text-[#9bbc0f]">MDJ</span></h1></div>
           <div className="flex items-end gap-3"><div className="text-right"><p className="text-[10px] font-bold tracking-widest" style={{ color: DIFFICULTIES[difficulty].color }}>{DIFFICULTIES[difficulty].label.toUpperCase()} · SCORE</p><p className="text-2xl font-black tabular-nums">{score}</p></div><button onClick={onExit} className="min-h-10 rounded-xl border border-white/20 bg-white/10 px-3 text-xs font-bold text-white/80 hover:bg-white/20">Quitter</button></div>
         </div>
-        <div className="relative overflow-hidden rounded-2xl border-[10px] border-[#0f380f] bg-[#9bbc0f] shadow-2xl shadow-black/40">
+        <div className="relative overflow-hidden rounded-2xl border-[10px] border-[#0f380f] shadow-2xl shadow-black/40" style={{ background: DIFFICULTIES[difficulty].color }}>
           <canvas ref={canvasRef} width={BOARD} height={BOARD} onPointerDown={onPointerDown} onPointerUp={onPointerUp} className="block w-full touch-none" aria-label="Snake MDJ. Glisse dans une direction pour jouer." />
           {status !== 'running' && <div className="absolute inset-0 flex items-center justify-center bg-[#0f380f]/80 p-6 text-center text-[#9bbc0f]">
             {status === 'intro' ? <div><p className="font-mono text-sm font-bold tracking-[.2em]">SNAKE MDJ</p><h2 className="mt-2 font-mono text-3xl font-black">CHOISIS TON NIVEAU</h2><p className="mt-3 text-sm text-[#9bbc0f]/80">Glisse sur l’écran ou utilise les flèches.</p><div className="mt-5 grid gap-2">{(Object.entries(DIFFICULTIES) as Array<[Difficulty, typeof DIFFICULTIES[Difficulty]]>).map(([key, level]) => <button key={key} onClick={() => start(key)} className="border-2 px-5 py-2 text-left font-mono transition-transform hover:scale-[1.02]" style={{ borderColor: level.color, color: level.color }}><strong>{level.label.toUpperCase()}</strong> <span className="text-xs text-[#9bbc0f]/75">— {level.description}</span></button>)}</div></div> : <div><p className="font-mono text-sm font-bold tracking-[.2em]">FIN DE PARTIE</p><h2 className="mt-2 font-mono text-3xl font-black">GAME OVER</h2><p className="mt-4 font-mono text-xl">Score : {score}</p><p className="mt-1 text-sm text-[#9bbc0f]/75">Meilleur score : {best}</p><button onClick={() => start()} className="mt-6 border-2 border-[#9bbc0f] bg-[#9bbc0f] px-7 py-3 font-mono font-black text-[#0f380f] hover:bg-transparent hover:text-[#9bbc0f]">REJOUER</button><button onClick={() => setStatus('intro')} className="mt-3 block w-full text-xs font-bold text-[#9bbc0f]/65 underline underline-offset-4">Changer de niveau</button></div>}
           </div>}
         </div>
-        <div className="mx-auto mt-5 grid w-[216px] grid-cols-3 gap-0 sm:hidden">
+        <div className="mx-auto mt-5 grid w-[252px] grid-cols-3 gap-0 sm:hidden">
           <span />{dPad('up', '↑')}<span />
           {dPad('left', '←')}{dPad('down', '↓')}{dPad('right', '→')}
         </div>
