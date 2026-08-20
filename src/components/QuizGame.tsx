@@ -460,8 +460,8 @@ function randomizeAnswers(question: Question): Question {
 /* ── Shell wrapper ──────────────────────────────────────────────── */
 function Shell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex items-start justify-center relative overflow-hidden" style={{ background: BRAND.dark }}>
-      <div className="w-full max-w-md mx-auto min-h-screen flex flex-col">
+    <div className="min-h-dvh flex items-start justify-center relative overflow-x-hidden" style={{ background: BRAND.dark }}>
+      <div className="w-full max-w-md mx-auto min-h-dvh flex flex-col">
         {children}
       </div>
     </div>

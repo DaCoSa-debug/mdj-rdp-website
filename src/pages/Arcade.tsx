@@ -85,7 +85,7 @@ export default function Arcade() {
 
   return (
     <>
-      <Header />
+      {selectedGame === null && <Header />}
       <section className="bg-[#231F20] min-h-screen">
         {selectedGame !== null && <BackButton onBack={exitGame} />}
         {selectedGame === null && <ArcadeHub onSelectGame={setSelectedGame} onEndSession={handleEndSession} />}
