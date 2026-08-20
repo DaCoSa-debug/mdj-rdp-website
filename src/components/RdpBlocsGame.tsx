@@ -7,11 +7,11 @@ const CELL = 36
 const WIDTH = COLS * CELL
 const HEIGHT = ROWS * CELL
 const COLORS = ['#FBB040', '#F05063', '#29ABE2', '#8DC63F', '#F7941E']
-const DIFFICULTIES: Record<Difficulty, { label: string; delay: number; color: string; description: string }> = {
-  facile: { label: 'Facile', delay: 830, color: '#8DC63F', description: 'Pour découvrir le quartier' },
-  moyen: { label: 'Moyen', delay: 660, color: '#FBB040', description: 'Le rythme classique' },
-  difficile: { label: 'Difficile', delay: 490, color: '#F7941E', description: 'Pour les rapides' },
-  extreme: { label: 'Extrême', delay: 340, color: '#F05063', description: 'Réservé aux experts' },
+const DIFFICULTIES: Record<Difficulty, { label: string; delay: number; minDelay: number; lineStep: number; color: string; description: string }> = {
+  facile: { label: 'Facile', delay: 900, minDelay: 460, lineStep: 8, color: '#8DC63F', description: 'Pour découvrir le quartier' },
+  moyen: { label: 'Moyen', delay: 600, minDelay: 270, lineStep: 14, color: '#FBB040', description: 'Le rythme classique' },
+  difficile: { label: 'Difficile', delay: 300, minDelay: 125, lineStep: 21, color: '#F7941E', description: 'Deux fois plus rapide' },
+  extreme: { label: 'Extrême', delay: 165, minDelay: 70, lineStep: 30, color: '#F05063', description: 'Réservé aux experts' },
 }
 
 type GameStatus = 'intro' | 'running' | 'over'
@@ -156,7 +156,8 @@ export default function RdpBlocsGame({ onExit }: { onExit: () => void }) {
   useEffect(() => { draw() }, [])
   useEffect(() => {
     if (status !== 'running') return
-    const timer = window.setInterval(moveDown, Math.max(220, DIFFICULTIES[difficulty].delay - lines * 18))
+    const level = DIFFICULTIES[difficulty]
+    const timer = window.setInterval(moveDown, Math.max(level.minDelay, level.delay - lines * level.lineStep))
     return () => window.clearInterval(timer)
   }, [difficulty, lines, status])
   useEffect(() => {
