@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import WhatsAppButton from '../components/WhatsAppButton'
@@ -43,8 +44,14 @@ function SessionEntryScreen({ onStart }: { onStart: (name: string) => void }) {
 }
 
 export default function Arcade() {
+  const location = useLocation()
   const [sessionName, setSessionName] = useState<string>(getSessionName)
   const [selectedGame, setSelectedGame] = useState<SelectedGame>(null)
+
+  useEffect(() => {
+    const game = new URLSearchParams(location.search).get('game')
+    if (game === 'quiz') setSelectedGame('quiz')
+  }, [location.search])
 
   function handleStartSession(name: string): void {
     startSession(name)

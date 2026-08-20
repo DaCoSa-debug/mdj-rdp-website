@@ -2,6 +2,8 @@ export interface ShareData {
   playerName: string
   score: number
   gameName: string
+  url?: string
+  shareText?: string
 }
 
 interface TextItem { text: string; y: number; color: string; font: string }
@@ -54,8 +56,17 @@ export function generateScoreImage(data: ShareData): Promise<string> {
 export async function shareScoreNative(data: ShareData): Promise<boolean> {
   if (!navigator.share) return false
   try {
-    const text = `J'ai fait ${data.score} points au ${data.gameName} de la MDJ-RDP! 🎮🔥`
-    await navigator.share({ title: 'MDJ Arcade', text, url: window.location.origin })
+    const text = data.shareText ?? `J'ai fait ${data.score} points au ${data.gameName} de la MDJ-RDP! 🎮🔥`
+    await navigator.share({ title: 'MDJ Arcade', text, url: data.url ?? window.location.origin })
+    return true
+  } catch { return false }
+}
+
+export async function copyScoreLink(data: ShareData): Promise<boolean> {
+  if (!navigator.clipboard) return false
+  try {
+    const text = data.shareText ?? `J'ai fait ${data.score} points au ${data.gameName} de la MDJ-RDP! 🎮🔥`
+    await navigator.clipboard.writeText(`${text}\n${data.url ?? window.location.origin}`)
     return true
   } catch { return false }
 }

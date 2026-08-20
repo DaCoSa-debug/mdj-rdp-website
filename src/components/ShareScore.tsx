@@ -1,23 +1,30 @@
 import { useState } from 'react'
-import { shareScoreNative, generateScoreImage, downloadImage } from '../lib/shareScore'
+import { copyScoreLink, shareScoreNative, generateScoreImage, downloadImage } from '../lib/shareScore'
 import type { ShareData } from '../lib/shareScore'
 
 export interface ShareScoreProps {
   playerName: string
   score: number
   gameName: string
+  challengeUrl?: string
+  challengeText?: string
 }
 
-export default function ShareScore({ playerName, score, gameName }: ShareScoreProps) {
+export default function ShareScore({ playerName, score, gameName, challengeUrl, challengeText }: ShareScoreProps) {
   const [isSharing, setIsSharing] = useState(false)
-  const data: ShareData = { playerName, score, gameName }
+  const [feedback, setFeedback] = useState('')
+  const data: ShareData = { playerName, score, gameName, url: challengeUrl, shareText: challengeText }
 
   async function handleShare(): Promise<void> {
     setIsSharing(true)
     const shared = await shareScoreNative(data)
     if (!shared) {
-      const url = await generateScoreImage(data)
-      downloadImage(url, 'mon-score-mdj.png')
+      const copied = await copyScoreLink(data)
+      if (copied) setFeedback('Lien de défi copié!')
+      else {
+        const url = await generateScoreImage(data)
+        downloadImage(url, 'mon-score-mdj.png')
+      }
     }
     setIsSharing(false)
   }
@@ -37,7 +44,7 @@ export default function ShareScore({ playerName, score, gameName }: ShareScorePr
         className="rounded-full px-8 py-3 text-white font-bold hover:opacity-90 transition-opacity disabled:opacity-40"
         style={{ background: 'linear-gradient(135deg, #F7941E, #F05063)' }}
       >
-        📲 Partager mon score
+        {challengeUrl ? '⚔️ Défier un ami' : '📲 Partager mon score'}
       </button>
       <button
         onClick={handleDownload}
@@ -46,6 +53,7 @@ export default function ShareScore({ playerName, score, gameName }: ShareScorePr
       >
         📸 Télécharger l'image
       </button>
+      {feedback && <p className="text-center text-xs font-semibold text-[#FBB040]" role="status">{feedback}</p>}
     </div>
   )
 }

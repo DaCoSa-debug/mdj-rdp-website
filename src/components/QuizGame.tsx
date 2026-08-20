@@ -354,6 +354,21 @@ function Shell({ children }: { children: React.ReactNode }) {
 
 type GameState = 'home' | 'playing' | 'result' | 'scores'
 
+interface QuizChallenge {
+  challenger: string
+  target: number
+  category: CategoryId
+}
+
+function getQuizChallenge(): QuizChallenge | null {
+  const params = new URLSearchParams(window.location.search)
+  const category = params.get('theme')
+  const challenger = params.get('from')?.trim().slice(0, 14)
+  const target = Number(params.get('target'))
+  if (!challenger || !categories.some(item => item.id === category) || !Number.isFinite(target) || target < 1) return null
+  return { challenger, target: Math.min(Math.round(target), 1200), category: category as CategoryId }
+}
+
 export default function QuizGame() {
   const [gameState, setGameState]         = useState<GameState>('home')
   const [scoresFrom, setScoresFrom]       = useState<'home' | 'result'>('home')
@@ -366,6 +381,7 @@ export default function QuizGame() {
   const [selected, setSelected]           = useState<number | null>(null)
   const [playerName]                      = useState<string>(getSessionName)
   const [localScores, setLocalScores]     = useState<GameRank[]>(() => getGameTopRanking('quiz', 5))
+  const [challenge]                       = useState<QuizChallenge | null>(getQuizChallenge)
 
   /* ── Timer ── */
   useEffect(() => {
@@ -423,6 +439,7 @@ export default function QuizGame() {
 
   const q          = shuffled[current]
   const catDef     = categories.find(c => c.id === selectedCat)
+  const challengeCategory = categories.find(c => c.id === challenge?.category)
   const catColor   = catDef?.color ?? BRAND.orange
   const timerPct   = (timeLeft / TIMER_DURATION) * 100
   const timerColor = timeLeft > 12 ? catColor : timeLeft > 6 ? BRAND.yellow : BRAND.pink
@@ -460,6 +477,17 @@ export default function QuizGame() {
             <p className="text-xs font-bold uppercase tracking-widest text-white/40">Joueur</p>
             <p className="mt-1 font-black text-white">{playerName || 'Joueur'}</p>
           </div>
+
+          {challenge && challengeCategory && (
+            <div className="mb-6 rounded-2xl border-2 px-5 py-4 text-center" style={{ borderColor: `${challengeCategory.color}80`, background: `${challengeCategory.color}18` }}>
+              <p className="text-xs font-bold uppercase tracking-widest text-white/55">Défi reçu</p>
+              <p className="mt-1 text-sm text-white"><strong>{challenge.challenger}</strong> a marqué <strong style={{ color: BRAND.yellow }}>{challenge.target} pts</strong></p>
+              <p className="mt-1 text-xs text-white/60">{challengeCategory.emoji} {challengeCategory.label}</p>
+              <button onClick={() => startGame(challenge.category)} className="mt-3 min-h-[48px] w-full rounded-xl px-4 text-sm font-black text-white" style={{ background: `linear-gradient(135deg, ${challengeCategory.color}, ${BRAND.pink})` }}>
+                Relever le défi ⚔️
+              </button>
+            </div>
+          )}
 
           {/* Category grid */}
           <p className="text-white/40 text-xs uppercase tracking-widest font-semibold mb-3 text-center">
@@ -628,7 +656,13 @@ export default function QuizGame() {
             <p className="text-white/40 text-sm mt-1">points sur {maxScore} max</p>
           </div>
 
-          <ShareScore playerName={playerName} score={score} gameName="Quiz MDJ" />
+          <ShareScore
+            playerName={playerName}
+            score={score}
+            gameName="Quiz MDJ"
+            challengeUrl={`${window.location.origin}/arcade?game=quiz&theme=${selectedCat ?? 'rdp'}&target=${score}&from=${encodeURIComponent(playerName || 'Joueur')}`}
+            challengeText={`⚔️ Défi Quiz MDJ : ${playerName || 'Joueur'} a marqué ${score} pts en ${catDef?.label ?? 'Quiz MDJ'}. Peux-tu faire mieux?`}
+          />
 
           <div className="flex flex-col gap-3 w-full">
             <button
