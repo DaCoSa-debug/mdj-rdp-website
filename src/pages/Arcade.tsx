@@ -53,6 +53,10 @@ export default function Arcade() {
     if (game === 'quiz') setSelectedGame('quiz')
   }, [location.search])
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' })
+  }, [selectedGame])
+
   function handleStartSession(name: string): void {
     startSession(name)
     setSessionName(name)
@@ -91,8 +95,8 @@ export default function Arcade() {
         {selectedGame === 'snake' && <SnakeGame onExit={exitGame} />}
         {selectedGame === 'rdp-blocs' && <RdpBlocsGame onExit={exitGame} />}
       </section>
-      <Footer />
-      <WhatsAppButton />
+      {selectedGame === null && <Footer />}
+      {selectedGame === null && <WhatsAppButton />}
     </>
   )
 }

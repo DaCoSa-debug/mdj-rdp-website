@@ -36,7 +36,7 @@ function GameCard({ id, emoji, title, desc, meta, record, onPlay, disabled = fal
   return (
     <div className="p-[2px] rounded-3xl" style={{ background: GRADIENT }}>
       <div className="bg-[#2a2020] rounded-[calc(1.5rem-2px)] p-7 text-center sm:p-8">
-        <div className="relative"><GamePreview game={id} /><span className="absolute -bottom-4 left-1/2 -translate-x-1/2 rounded-full border-2 border-[#2a2020] bg-[#231F20] px-3 py-1 text-2xl">{emoji}</span></div>
+        <div className="relative"><GamePreview game={id} /><span className="animate-arcade-icon absolute -bottom-4 left-1/2 -translate-x-1/2 rounded-full border-2 border-[#2a2020] bg-[#231F20] px-3 py-1 text-2xl">{emoji}</span></div>
         <h3 className="mt-7 font-black text-2xl text-white">{title}</h3>
         <p className="text-white/60 text-sm mt-2">{desc}</p>
         <div className="mt-5 rounded-2xl bg-white/5 px-4 py-3">
