@@ -3,6 +3,8 @@ import { Trophy, Clock, CheckCircle, XCircle, RotateCcw, ArrowLeft } from 'lucid
 import ShareScore from './ShareScore'
 import { addXp, getGameTopRanking, getSessionName, recordGameScore } from '../lib/arcadeScores'
 import type { GameRank } from '../lib/arcadeScores'
+import { createQuizChallenge, getChallengeAttempts, getQuizChallenge as fetchQuizChallenge, recordChallengeAttempt } from '../lib/arcadeChallenges'
+import type { ChallengeAttempt } from '../lib/arcadeChallenges'
 
 /* ── Brand palette ─────────────────────────────────────────────── */
 const BRAND = {
@@ -471,6 +473,7 @@ function Shell({ children }: { children: React.ReactNode }) {
 type GameState = 'home' | 'playing' | 'result' | 'scores'
 
 interface QuizChallenge {
+  id?: string
   challenger: string
   target: number
   category: CategoryId
@@ -504,6 +507,18 @@ export default function QuizGame() {
   const [playerName]                      = useState<string>(getSessionName)
   const [localScores, setLocalScores]     = useState<GameRank[]>(() => getGameTopRanking('quiz', 5))
   const [challenge]                       = useState<QuizChallenge | null>(getQuizChallenge)
+  const [remoteChallenge, setRemoteChallenge] = useState<QuizChallenge | null>(null)
+  const [challengeAttempts, setChallengeAttempts] = useState<ChallengeAttempt[]>([])
+  const challengeId = new URLSearchParams(window.location.search).get('challenge')
+
+  useEffect(() => {
+    if (!challengeId) return
+    void fetchQuizChallenge(challengeId).then(async loaded => {
+      if (!loaded || !categories.some(category => category.id === loaded.theme)) return
+      setRemoteChallenge({ id: loaded.id, challenger: loaded.challengerName, target: loaded.targetScore, category: loaded.theme as CategoryId })
+      setChallengeAttempts(await getChallengeAttempts(loaded.id))
+    })
+  }, [challengeId])
 
   /* ── Timer ── */
   useEffect(() => {
@@ -566,6 +581,9 @@ export default function QuizGame() {
     recordGameScore('quiz', name, finalScore)
     addXp(name, Math.max(10, Math.round(finalScore / 10)))
     setLocalScores(getGameTopRanking('quiz', 5))
+    if (challengeId) {
+      void recordChallengeAttempt(challengeId, name, finalScore).then(async () => setChallengeAttempts(await getChallengeAttempts(challengeId)))
+    }
     setGameState('result')
   }
 
@@ -599,7 +617,8 @@ export default function QuizGame() {
   const q          = shuffled[current]
   const catDef     = categories.find(c => c.id === selectedCat)
   const questionCat = categories.find(c => c.id === q?.category) ?? catDef
-  const challengeCategory = categories.find(c => c.id === challenge?.category)
+  const activeChallenge = remoteChallenge ?? challenge
+  const challengeCategory = categories.find(c => c.id === activeChallenge?.category)
   const catColor   = questionCat?.color ?? BRAND.orange
   const timerLimit = getTimeForQuestion(current)
   const timerPct   = Math.min((timeLeft / timerLimit) * 100, 100)
@@ -639,14 +658,15 @@ export default function QuizGame() {
             <p className="mt-1 font-black text-white">{playerName || 'Joueur'}</p>
           </div>
 
-          {challenge && challengeCategory && (
+          {activeChallenge && challengeCategory && (
             <div className="mb-6 rounded-2xl border-2 px-5 py-4 text-center" style={{ borderColor: `${challengeCategory.color}80`, background: `${challengeCategory.color}18` }}>
               <p className="text-xs font-bold uppercase tracking-widest text-white/55">Défi reçu</p>
-              <p className="mt-1 text-sm text-white"><strong>{challenge.challenger}</strong> a marqué <strong style={{ color: BRAND.yellow }}>{challenge.target} XP</strong></p>
+              <p className="mt-1 text-sm text-white"><strong>{activeChallenge.challenger}</strong> a marqué <strong style={{ color: BRAND.yellow }}>{activeChallenge.target} XP</strong></p>
               <p className="mt-1 text-xs text-white/60">{challengeCategory.emoji} {challengeCategory.label}</p>
-              <button onClick={() => startGame(challenge.category)} className="mt-3 min-h-[48px] w-full rounded-xl px-4 text-sm font-black text-white" style={{ background: `linear-gradient(135deg, ${challengeCategory.color}, ${BRAND.pink})` }}>
+              <button onClick={() => startGame(activeChallenge.category)} className="mt-3 min-h-[48px] w-full rounded-xl px-4 text-sm font-black text-white" style={{ background: `linear-gradient(135deg, ${challengeCategory.color}, ${BRAND.pink})` }}>
                 Relever le défi ⚔️
               </button>
+              {challengeAttempts.length > 0 && <p className="mt-3 text-xs text-white/70">Meilleur essai: <strong>{challengeAttempts[0].playerName}</strong> — {challengeAttempts[0].score} XP</p>}
             </div>
           )}
 
@@ -858,6 +878,10 @@ export default function QuizGame() {
             gameName="Quiz MDJ"
             challengeUrl={`${window.location.origin}/arcade?game=quiz&theme=${selectedCat ?? 'rdp'}&target=${score}&from=${encodeURIComponent(playerName || 'Joueur')}`}
             challengeText={`⚔️ Défi Quiz MDJ : ${playerName || 'Joueur'} a marqué ${score} XP en ${catDef?.label ?? 'Quiz MDJ'}. Peux-tu faire mieux?`}
+            createChallengeUrl={async () => {
+              const id = await createQuizChallenge(selectedCat ?? 'rdp', playerName || 'Joueur', score)
+              return id ? `${window.location.origin}/arcade?game=quiz&challenge=${id}` : null
+            }}
           />
 
           <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-6 w-full">

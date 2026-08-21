@@ -8,18 +8,26 @@ export interface ShareScoreProps {
   gameName: string
   challengeUrl?: string
   challengeText?: string
+  createChallengeUrl?: () => Promise<string | null>
 }
 
-export default function ShareScore({ playerName, score, gameName, challengeUrl, challengeText }: ShareScoreProps) {
+export default function ShareScore({ playerName, score, gameName, challengeUrl, challengeText, createChallengeUrl }: ShareScoreProps) {
   const [isSharing, setIsSharing] = useState(false)
   const [feedback, setFeedback] = useState('')
+  const [createdUrl, setCreatedUrl] = useState<string | null>(null)
   const data: ShareData = { playerName, score, gameName, url: challengeUrl, shareText: challengeText }
 
   async function handleShare(): Promise<void> {
     setIsSharing(true)
-    const shared = await shareScoreNative(data)
+    const savedUrl = createChallengeUrl ? await createChallengeUrl() : null
+    const shareData: ShareData = { ...data, url: savedUrl ?? data.url }
+    if (savedUrl) {
+      setCreatedUrl(savedUrl)
+      setFeedback('Défi créé! Ouvre-le plus tard pour voir les résultats.')
+    }
+    const shared = await shareScoreNative(shareData)
     if (!shared) {
-      const copied = await copyScoreLink(data)
+      const copied = await copyScoreLink(shareData)
       if (copied) setFeedback('Lien de défi copié!')
       else {
         const url = await generateScoreImage(data)
@@ -57,6 +65,7 @@ export default function ShareScore({ playerName, score, gameName, challengeUrl, 
       </button>
       </div>
       {feedback && <p className="text-center text-xs font-semibold text-[#FBB040]" role="status">{feedback}</p>}
+      {createdUrl && <a href={createdUrl} className="mt-3 block text-center text-xs font-bold text-white/70 underline underline-offset-4 hover:text-white">Voir les résultats du défi</a>}
     </div>
   )
 }
