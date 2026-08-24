@@ -40,7 +40,14 @@ export default function Footer() {
               Un espace sûr, gratuit et bienveillant pour les jeunes de
               Rivière-des-Prairies depuis 1982.
             </p>
-            <p className="mt-6 text-sm text-white/45">Nos réseaux sociaux seront ajoutés ici avec leurs liens officiels.</p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a href="https://www.facebook.com/lamaisondesjeunesRDP" target="_blank" rel="noreferrer" className="inline-flex min-h-[40px] items-center rounded-full border border-white/15 px-4 text-sm font-bold text-white/75 transition-colors hover:border-white/40 hover:text-white" aria-label="Facebook de la Maison des jeunes RDP">
+                f&nbsp; Facebook
+              </a>
+              <a href="https://www.instagram.com/mdj.rdp/" target="_blank" rel="noreferrer" className="inline-flex min-h-[40px] items-center rounded-full border border-white/15 px-4 text-sm font-bold text-white/75 transition-colors hover:border-white/40 hover:text-white" aria-label="Instagram de la Maison des jeunes RDP">
+                ◎&nbsp; Instagram
+              </a>
+            </div>
           </div>
 
           {/* COL 2 — Newsletter */}
