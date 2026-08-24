@@ -1,5 +1,8 @@
 import type { BoardCell, GameSymbol } from '../lib/trikiLogic'
 import ShareScore from './ShareScore'
+import { createArcadeChallenge } from '../lib/arcadeChallenges'
+import ChallengeBanner from './ChallengeBanner'
+import type { Difficulty } from '../lib/trikiLogic'
 
 const PINK = '#F05063'
 const BLUE = '#29ABE2'
@@ -15,7 +18,8 @@ interface BoardScreenProps {
   onReplay: () => void
   onChangeMode: () => void
   playerName: string
-  cumulativeScore: number
+  mode: 'friend' | 'ai'
+  difficulty: Difficulty
 }
 
 function TurnIndicator({ currentPlayer, winner }: { currentPlayer: GameSymbol; winner: GameSymbol | 'draw' | null }) {
@@ -41,10 +45,11 @@ function BoardCellItem({ value, position, isWinning, onClick }: CellProps) {
   )
 }
 
-export default function TrikiBoardScreen({ board, currentPlayer, winner, winningLine, scores, onCellClick, onReplay, onChangeMode, playerName, cumulativeScore }: BoardScreenProps) {
+export default function TrikiBoardScreen({ board, currentPlayer, winner, winningLine, scores, onCellClick, onReplay, onChangeMode, playerName, mode, difficulty }: BoardScreenProps) {
   return (
     <div className="bg-[#231F20] min-h-screen flex flex-col px-6 pt-8">
       <h1 className="sr-only">Triki MDJ</h1>
+      <ChallengeBanner game="triki" />
       <div className="flex justify-center gap-8 mb-6">
         <span>
           <span className="font-black text-2xl" style={{ color: PINK }}>X</span>
@@ -67,9 +72,9 @@ export default function TrikiBoardScreen({ board, currentPlayer, winner, winning
           />
         ))}
       </div>
-      {winner === 'X' && (
+      {winner === 'X' && mode === 'ai' && scores.X >= 2 && (
         <div className="mt-6 max-w-xs mx-auto w-full">
-          <ShareScore playerName={playerName} score={cumulativeScore} gameName="Triki MDJ" />
+          <ShareScore playerName={playerName} score={2} gameName="Triki MDJ — 2 victoires contre l’IA" createChallengeUrl={async () => { const id = await createArcadeChallenge('triki', difficulty, playerName || 'Joueur', 2); return id ? `${window.location.origin}/arcade?game=triki&challenge=${id}` : null }} />
         </div>
       )}
       <div className="flex flex-col gap-3 mt-4 max-w-xs mx-auto w-full pb-8">

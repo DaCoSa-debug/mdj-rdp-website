@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import { addGameWin, addXp, getPlayerGameScore, getSessionName } from '../lib/arcadeScores'
+import { addGameWin, addXp, getSessionName } from '../lib/arcadeScores'
 import { checkWinner, getAiMove } from '../lib/trikiLogic'
+import { recordCurrentChallengeAttempt } from '../lib/arcadeChallenges'
 import type { BoardCell, GameSymbol, Difficulty } from '../lib/trikiLogic'
 import TrikiModeScreen from './TrikiModeScreen'
 import TrikiBoardScreen from './TrikiBoardScreen'
@@ -19,12 +20,6 @@ export default function TrikiGame() {
   const [difficulty, setDifficulty] = useState<Difficulty>('facile')
   const [scores, setScores] = useState<Record<GameSymbol, number>>({ X: 0, O: 0 })
   const [playerName] = useState<string>(getSessionName)
-  const [cumulativeWins, setCumulativeWins] = useState<number>(0)
-
-  useEffect(() => {
-    setCumulativeWins(playerName ? getPlayerGameScore('triki', playerName) : 0)
-    return () => undefined
-  }, [playerName])
 
   useEffect(() => {
     if (mode !== 'ai' || currentPlayer !== 'O' || winner !== null) return () => undefined
@@ -33,7 +28,6 @@ export default function TrikiGame() {
   }, [mode, currentPlayer, winner, board, difficulty])
 
   function persistWin(): void {
-    setCumulativeWins(w => w + 1)
     if (!playerName) return
     const xpReward = difficulty === 'difficile' ? 30 : difficulty === 'moyen' ? 20 : 10
     addGameWin('triki', playerName)
@@ -46,8 +40,10 @@ export default function TrikiGame() {
     if (result) {
       setWinner(result.winner)
       setWinningLine([...result.line])
+      const nextWins = scores[result.winner] + 1
       setScores(s => ({ ...s, [result.winner]: s[result.winner] + 1 }))
       if (result.winner === 'X' && mode === 'ai') persistWin()
+      if (result.winner === 'X' && mode === 'ai' && nextWins === 2 && playerName) recordCurrentChallengeAttempt('triki', playerName, 2)
       return
     }
     if (newBoard.every(Boolean)) { setWinner('draw'); return }
@@ -107,7 +103,8 @@ export default function TrikiGame() {
       onReplay={resetBoard}
       onChangeMode={handleChangeMode}
       playerName={playerName}
-      cumulativeScore={cumulativeWins}
+      mode={mode}
+      difficulty={difficulty}
     />
   )
 }

@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { addXp, getSessionName, recordGameScore } from '../lib/arcadeScores'
+import ShareScore from './ShareScore'
+import { createArcadeChallenge, recordCurrentChallengeAttempt } from '../lib/arcadeChallenges'
+import ChallengeBanner from './ChallengeBanner'
 
 const WIDTH = 960
 const HEIGHT = 440
@@ -207,6 +210,7 @@ export default function RdpRun({ onExit }: RdpRunProps) {
       if (playerName && finalScore > 0) {
         recordGameScore('rdp-run', playerName, finalScore)
         addXp(playerName, Math.max(10, Math.floor(finalScore / 30)))
+        recordCurrentChallengeAttempt('rdp-run', playerName, finalScore)
       }
     }
   }, [])
@@ -323,6 +327,7 @@ export default function RdpRun({ onExit }: RdpRunProps) {
   return (
     <div className="min-h-screen bg-[#231F20] px-3 py-5 sm:px-6 sm:py-10">
       <div className="mx-auto max-w-5xl">
+        <ChallengeBanner game="rdp-run" />
         <div className="mb-3 flex flex-wrap items-end justify-between gap-3 text-white sm:mb-5">
           <div><p className="text-[10px] font-black tracking-[.25em] text-[#FBB040] sm:text-xs">MDJ ARCADE</p><h1 className="text-3xl font-black italic sm:text-5xl">RDP <span className="text-[#F05063]">RUN</span></h1></div>
           <div className="flex items-end gap-3 text-right"><div><p className="text-[10px] text-white/60 sm:text-xs">SCORE</p><p className="text-xl font-black tabular-nums sm:text-2xl">{score}</p></div><div className="border-l border-white/20 pl-3"><p className="text-[10px] text-white/60 sm:text-xs">PIÈCES</p><p className="text-xl font-black tabular-nums text-[#FBB040] sm:text-2xl">× {coins}</p></div><button onClick={onExit} className="ml-1 min-h-10 rounded-xl border border-white/20 bg-white/10 px-3 text-xs font-bold text-white/80 transition-colors hover:bg-white/20 hover:text-white" aria-label="Quitter RDP Run">Quitter</button></div>
@@ -334,7 +339,7 @@ export default function RdpRun({ onExit }: RdpRunProps) {
           </div>
           {status !== 'running' && (
             <div className="absolute inset-0 flex items-center justify-center bg-[#231F20]/55 p-5 text-center backdrop-blur-[2px]">
-              {status === 'intro' ? <div className="text-white"><p className="mb-2 text-sm font-bold tracking-[.2em] text-[#FBB040]">BIENVENUE À RDP</p><h2 className="text-4xl font-black sm:text-5xl">RDP RUN</h2><p className="mx-auto mt-3 max-w-sm text-white/80">Saute les obstacles, attrape les pièces et cours le plus loin possible.</p><button onClick={begin} className="mt-7 rounded-full bg-[#F05063] px-9 py-3 font-black text-white shadow-lg transition-transform hover:scale-105">JOUER</button><p className="mt-4 text-xs text-white/65">Tape l'écran ou appuie sur ESPACE pour sauter</p></div> : <div className="text-white"><p className="text-sm font-bold tracking-[.2em] text-[#FBB040]">FIN DE PARTIE</p><h2 className="mt-1 text-4xl font-black">GAME OVER</h2><p className="mt-4 text-xl">Score: <strong>{score}</strong></p><p className="text-white/70">Meilleur score: {best}</p><button onClick={begin} className="mt-6 rounded-full bg-[#F05063] px-8 py-3 font-black text-white shadow-lg transition-transform hover:scale-105">REJOUER</button></div>}
+              {status === 'intro' ? <div className="text-white"><p className="mb-2 text-sm font-bold tracking-[.2em] text-[#FBB040]">BIENVENUE À RDP</p><h2 className="text-4xl font-black sm:text-5xl">RDP RUN</h2><p className="mx-auto mt-3 max-w-sm text-white/80">Saute les obstacles, attrape les pièces et cours le plus loin possible.</p><button onClick={begin} className="mt-7 rounded-full bg-[#F05063] px-9 py-3 font-black text-white shadow-lg transition-transform hover:scale-105">JOUER</button><p className="mt-4 text-xs text-white/65">Tape l'écran ou appuie sur ESPACE pour sauter</p></div> : <div className="max-w-sm text-white"><p className="text-sm font-bold tracking-[.2em] text-[#FBB040]">FIN DE PARTIE</p><h2 className="mt-1 text-4xl font-black">GAME OVER</h2><p className="mt-4 text-xl">Score: <strong>{score}</strong></p><p className="text-white/70">Meilleur score: {best}</p><ShareScore playerName={getSessionName()} score={score} gameName="RDP Run" createChallengeUrl={async () => { const id = await createArcadeChallenge('rdp-run', 'normal', getSessionName() || 'Joueur', score); return id ? `${window.location.origin}/arcade?game=rdp-run&challenge=${id}` : null }} /><button onClick={begin} className="mt-5 rounded-full bg-[#F05063] px-8 py-3 font-black text-white shadow-lg transition-transform hover:scale-105">REJOUER</button></div>}
             </div>
           )}
         </div>

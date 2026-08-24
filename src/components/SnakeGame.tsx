@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { addXp, getPlayerGameScore, getSessionName, recordGameScore } from '../lib/arcadeScores'
+import ShareScore from './ShareScore'
+import { createArcadeChallenge, recordCurrentChallengeAttempt } from '../lib/arcadeChallenges'
+import ChallengeBanner from './ChallengeBanner'
 
 const SIZE = 20
 const BOARD = 480
@@ -37,7 +40,10 @@ export default function SnakeGame({ onExit }: { onExit: () => void }) {
   const gameRef = useRef<SnakeData>(freshGame())
   const difficultyRef = useRef<Difficulty>('moyen')
   const [status, setStatus] = useState<GameStatus>('intro')
-  const [difficulty, setDifficulty] = useState<Difficulty>('moyen')
+  const [difficulty, setDifficulty] = useState<Difficulty>(() => {
+    const value = new URLSearchParams(window.location.search).get('difficulty')
+    return value === 'facile' || value === 'moyen' || value === 'difficile' || value === 'extreme' ? value : 'moyen'
+  })
   const [score, setScore] = useState(0)
   const [best, setBest] = useState(() => getPlayerGameScore('snake', getSessionName()))
   const touchStart = useRef<Cell | null>(null)
@@ -74,6 +80,7 @@ export default function SnakeGame({ onExit }: { onExit: () => void }) {
     if (name && finalScore > 0) {
       recordGameScore('snake', name, finalScore)
       addXp(name, Math.max(5, finalScore * 5))
+      recordCurrentChallengeAttempt('snake', name, finalScore)
       setBest(Math.max(best, finalScore))
     }
     setStatus('over')
@@ -148,6 +155,7 @@ export default function SnakeGame({ onExit }: { onExit: () => void }) {
   return (
     <div className="min-h-screen bg-[#231F20] px-4 py-8 sm:px-6 sm:py-10">
       <div className="mx-auto max-w-xl">
+        <ChallengeBanner game="snake" />
         <div className="mb-4 flex items-end justify-between gap-3 text-white">
           <div><p className="text-xs font-black tracking-[.22em] text-[#9bbc0f]">MDJ ARCADE</p><h1 className="text-4xl font-black">SNAKE <span className="text-[#9bbc0f]">MDJ</span></h1></div>
           <div className="flex items-end gap-3"><div className="text-right"><p className="text-[10px] font-bold tracking-widest" style={{ color: DIFFICULTIES[difficulty].color }}>{DIFFICULTIES[difficulty].label.toUpperCase()} · SCORE</p><p className="text-2xl font-black tabular-nums">{score}</p></div><button onClick={onExit} className="min-h-10 rounded-xl border border-white/20 bg-white/10 px-3 text-xs font-bold text-white/80 hover:bg-white/20">Quitter</button></div>
@@ -155,7 +163,7 @@ export default function SnakeGame({ onExit }: { onExit: () => void }) {
         <div className="relative overflow-hidden rounded-2xl border-[10px] border-[#0f380f] shadow-2xl shadow-black/40" style={{ background: DIFFICULTIES[difficulty].color }}>
           <canvas ref={canvasRef} width={BOARD} height={BOARD} onPointerDown={onPointerDown} onPointerUp={onPointerUp} className="block w-full touch-none" aria-label="Snake MDJ. Glisse dans une direction pour jouer." />
           {status !== 'running' && <div className="absolute inset-0 flex items-center justify-center bg-[#0f380f]/80 p-6 text-center text-[#9bbc0f]">
-            {status === 'intro' ? <div><p className="font-mono text-sm font-bold tracking-[.2em]">SNAKE MDJ</p><h2 className="mt-2 font-mono text-3xl font-black">CHOISIS TON NIVEAU</h2><p className="mt-3 text-sm text-[#9bbc0f]/80">Glisse sur l’écran ou utilise les flèches.</p><div className="mt-5 grid gap-2">{(Object.entries(DIFFICULTIES) as Array<[Difficulty, typeof DIFFICULTIES[Difficulty]]>).map(([key, level]) => <button key={key} onClick={() => start(key)} className="border-2 px-5 py-2 text-left font-mono transition-transform hover:scale-[1.02]" style={{ borderColor: level.color, color: level.color }}><strong>{level.label.toUpperCase()}</strong> <span className="text-xs text-[#9bbc0f]/75">— {level.description}</span></button>)}</div></div> : <div><p className="font-mono text-sm font-bold tracking-[.2em]">FIN DE PARTIE</p><h2 className="mt-2 font-mono text-3xl font-black">GAME OVER</h2><p className="mt-4 font-mono text-xl">Score : {score}</p><p className="mt-1 text-sm text-[#9bbc0f]/75">Meilleur score : {best}</p><button onClick={() => start()} className="mt-6 border-2 border-[#9bbc0f] bg-[#9bbc0f] px-7 py-3 font-mono font-black text-[#0f380f] hover:bg-transparent hover:text-[#9bbc0f]">REJOUER</button><button onClick={() => setStatus('intro')} className="mt-3 block w-full text-xs font-bold text-[#9bbc0f]/65 underline underline-offset-4">Changer de niveau</button></div>}
+            {status === 'intro' ? <div><p className="font-mono text-sm font-bold tracking-[.2em]">SNAKE MDJ</p><h2 className="mt-2 font-mono text-3xl font-black">CHOISIS TON NIVEAU</h2><p className="mt-3 text-sm text-[#9bbc0f]/80">Glisse sur l’écran ou utilise les flèches.</p><div className="mt-5 grid gap-2">{(Object.entries(DIFFICULTIES) as Array<[Difficulty, typeof DIFFICULTIES[Difficulty]]>).map(([key, level]) => <button key={key} onClick={() => start(key)} className="border-2 px-5 py-2 text-left font-mono transition-transform hover:scale-[1.02]" style={{ borderColor: level.color, color: level.color }}><strong>{level.label.toUpperCase()}</strong> <span className="text-xs text-[#9bbc0f]/75">— {level.description}</span></button>)}</div></div> : <div><p className="font-mono text-sm font-bold tracking-[.2em]">FIN DE PARTIE</p><h2 className="mt-2 font-mono text-3xl font-black">GAME OVER</h2><p className="mt-4 font-mono text-xl">Score : {score}</p><p className="mt-1 text-sm text-[#9bbc0f]/75">Meilleur score : {best}</p><ShareScore playerName={getSessionName()} score={score} gameName="Snake MDJ" createChallengeUrl={async () => { const id = await createArcadeChallenge('snake', difficulty, getSessionName() || 'Joueur', score); return id ? `${window.location.origin}/arcade?game=snake&challenge=${id}&difficulty=${difficulty}` : null }} /><button onClick={() => start()} className="mt-5 border-2 border-[#9bbc0f] bg-[#9bbc0f] px-7 py-3 font-mono font-black text-[#0f380f] hover:bg-transparent hover:text-[#9bbc0f]">REJOUER</button><button onClick={() => setStatus('intro')} className="mt-3 block w-full text-xs font-bold text-[#9bbc0f]/65 underline underline-offset-4">Changer de niveau</button></div>}
           </div>}
         </div>
         <div className="mx-auto mt-5 grid w-[252px] grid-cols-3 gap-0 sm:hidden">

@@ -50,7 +50,7 @@ export default function Arcade() {
 
   useEffect(() => {
     const game = new URLSearchParams(location.search).get('game')
-    if (game === 'quiz') setSelectedGame('quiz')
+    if (game === 'quiz' || game === 'rdp-run' || game === 'snake' || game === 'rdp-blocs' || game === 'triki') setSelectedGame(game)
   }, [location.search])
 
   useEffect(() => {
