@@ -120,10 +120,11 @@ export function createRealtimeServer(options: { manager?: RoomManager; corsOrigi
     }))
 
     socket.on('room:leave', guarded(leaveRoomSchema, payload => {
-      const result = manager.leaveRoom(payload.roomCode, socket.id)
+      const result = manager.abandonRoom(payload.roomCode, socket.id)
       roomBySocket.delete(socket.id)
       playerBySocket.delete(socket.id)
       socket.leave(payload.roomCode)
+      battleship.delete(payload.roomCode)
       if (result.player) socket.to(payload.roomCode).emit('player:left', { id: result.player.id, nickname: result.player.nickname, avatar: result.player.avatar, connected: false })
       emitRoomState(payload.roomCode)
     }))

@@ -57,6 +57,17 @@ export class RoomManager {
     return { room: this.publicRoom(room), player }
   }
 
+  abandonRoom(code: string, socketId: string): { room?: PublicRoomState; player?: RoomPlayer } {
+    const room = this.store.get(code)
+    if (!room) return {}
+    const player = room.players.find(candidate => candidate.socketId === socketId)
+    if (!player) return { room: this.publicRoom(room) }
+    room.players = room.players.filter(candidate => candidate.id !== player.id)
+    room.lastActivityAt = this.now()
+    if (room.players.length === 0) this.store.delete(code)
+    return { room: room.players.length ? this.publicRoom(room) : undefined, player }
+  }
+
   disconnect(socketId: string): { room?: PublicRoomState; player?: RoomPlayer } {
     for (const room of this.store.list()) {
       if (room.players.some(player => player.socketId === socketId)) return this.leaveRoom(room.code, socketId)
