@@ -6,11 +6,12 @@ const PINK = '#F05063'
 const BLUE = '#29ABE2'
 
 const games = [
-  { emoji: '🏃', title: 'RDP Run', tag: 'Course & réflexes', color: BLUE },
-  { emoji: '🧠', title: 'Quiz MDJ', tag: '130 questions · 13 thèmes', color: ORANGE },
-  { emoji: '⭕❌', title: 'Triki MDJ', tag: 'Défie l’IA ou tes amis', color: PINK },
-  { emoji: '🐍', title: 'Snake MDJ', tag: 'Le rétro revient', color: '#8DC63F' },
-  { emoji: '🧩', title: 'RDP Blocs', tag: 'Complète les lignes', color: ORANGE },
+  { emoji: '🏃', title: 'RDP Run', tag: 'Course & réflexes', color: BLUE, to: '/arcade?game=rdp-run' },
+  { emoji: '🧠', title: 'Quiz MDJ', tag: '130 questions · 13 thèmes', color: ORANGE, to: '/arcade?game=quiz' },
+  { emoji: '⭕❌', title: 'Triki MDJ', tag: 'Défie l’IA ou tes amis', color: PINK, to: '/arcade?game=triki' },
+  { emoji: '🐍', title: 'Snake MDJ', tag: 'Le rétro revient', color: '#8DC63F', to: '/arcade?game=snake' },
+  { emoji: '🧩', title: 'RDP Blocs', tag: 'Complète les lignes', color: ORANGE, to: '/arcade?game=rdp-blocs' },
+  { emoji: '🚢', title: 'Bataille navale', tag: 'Défie un ami en direct', color: PINK, to: '/arcade/battleship' },
 ]
 
 export default function Arcade() {
@@ -25,11 +26,11 @@ export default function Arcade() {
               <span style={{ background: `linear-gradient(135deg, ${ORANGE}, ${PINK}, ${BLUE})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Relève le défi.</span>
             </h2>
             <p className="mt-5 max-w-lg text-lg text-white/60">
-              Cinq jeux gratuits conçus pour mobile: records, quiz, défis entre amis et plaisir garanti.
+              Six jeux gratuits conçus pour mobile: records, quiz, défis entre amis et plaisir garanti.
             </p>
 
             <div className="mt-7 grid max-w-lg grid-cols-3 gap-3">
-              <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-center"><p className="text-xl font-black text-white">5</p><p className="text-[10px] font-bold uppercase tracking-wide text-white/45">jeux</p></div>
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-center"><p className="text-xl font-black text-white">6</p><p className="text-[10px] font-bold uppercase tracking-wide text-white/45">jeux</p></div>
               <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-center"><p className="text-xl font-black" style={{ color: ORANGE }}>130</p><p className="text-[10px] font-bold uppercase tracking-wide text-white/45">questions</p></div>
               <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-center"><p className="text-xl font-black" style={{ color: PINK }}>13</p><p className="text-[10px] font-bold uppercase tracking-wide text-white/45">thèmes</p></div>
             </div>
@@ -51,12 +52,12 @@ export default function Arcade() {
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {games.map((game, index) => (
-                  <div key={game.title} className={`rounded-2xl border border-white/10 bg-white/5 p-4 ${index === 0 ? 'sm:col-span-2' : ''}`}>
+                  <Link key={game.title} to={game.to} aria-label={`Jouer à ${game.title}`} className={`rounded-2xl border border-white/10 bg-white/5 p-4 transition-all hover:-translate-y-1 hover:border-white/35 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[#29ABE2] ${index === 0 ? 'sm:col-span-2' : ''}`}>
                     <span className="animate-arcade-icon inline-flex text-3xl" style={{ animationDelay: `${index * 120}ms` }}>{game.emoji}</span>
                     <p className="mt-3 font-black text-white">{game.title}</p>
                     <p className="mt-1 text-xs text-white/45">{game.tag}</p>
                     <span className="mt-3 block h-1.5 rounded-full" style={{ background: game.color }} />
-                  </div>
+                  </Link>
                 ))}
               </div>
               <Link to="/arcade" className="mt-4 flex min-h-[48px] items-center justify-center rounded-2xl border border-white/15 text-sm font-bold text-white transition-colors hover:bg-white/10">Jouer maintenant</Link>
