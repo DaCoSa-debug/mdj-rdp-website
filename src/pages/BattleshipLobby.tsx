@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { QRCodeSVG } from 'qrcode.react'
-import type { Avatar, PlayerSession, PublicRoomState } from '../../shared/multiplayerProtocol'
+import type { Avatar, BattleState, PlayerSession, PublicRoomState } from '../../shared/multiplayerProtocol'
 import { AVATARS } from '../../shared/multiplayerProtocol'
 import { createRealtimeClient, publicAppOrigin, type RealtimeSocket } from '../multiplayer/realtimeClient'
 
@@ -37,9 +37,14 @@ function AvatarPicker({ value, onChange }: { value: Avatar; onChange: (avatar: A
   )
 }
 
-function PlayerCard({ player }: { player?: PublicRoomState['players'][number] }) {
-  if (!player) return <div className="flex min-h-20 items-center justify-center rounded-2xl border border-dashed border-white/20 bg-white/[.03] px-4 text-center text-sm text-white/45">En attente d’un ami…</div>
-  return <div className="flex min-h-20 items-center gap-4 rounded-2xl border border-[#29ABE2]/40 bg-[#29ABE2]/10 px-4"><span className="text-3xl">{player.avatar}</span><div className="min-w-0"><p className="truncate font-black text-white">{player.nickname}</p><p className="text-xs text-[#8ed9ff]">{player.connected ? 'Connecté' : 'Reconnexion possible…'}</p></div></div>
+function BattleBoard({ cells, target, active, onFire }: { cells: Record<number, 'ship' | 'hit' | 'miss'>; target?: boolean; active?: boolean; onFire?: (cell: number) => void }) {
+  return <div className="grid grid-cols-10 gap-1 rounded-2xl bg-[#081b31] p-2 shadow-inner">
+    {Array.from({ length: 100 }, (_, cell) => {
+      const value = cells[cell]
+      const color = value === 'ship' ? 'bg-[#29ABE2]' : value === 'hit' ? 'bg-[#F05063] animate-pulse' : value === 'miss' ? 'bg-white/20' : 'bg-[#123452] hover:bg-[#1d5a87]'
+      return <button key={cell} disabled={!target || !active || Boolean(value)} onClick={() => onFire?.(cell)} aria-label={`Case ${cell}`} className={`aspect-square min-h-0 rounded-[3px] transition-all ${color} disabled:cursor-default`} />
+    })}
+  </div>
 }
 
 export default function BattleshipLobby() {
@@ -50,6 +55,9 @@ export default function BattleshipLobby() {
   const activeRoomCodeRef = useRef(initialCode)
   const [roomCode, setRoomCode] = useState(initialCode)
   const [room, setRoom] = useState<PublicRoomState | null>(null)
+  const [session, setSession] = useState<PlayerSession | null>(null)
+  const [battle, setBattle] = useState<BattleState | null>(null)
+  const [effect, setEffect] = useState('')
   const [nickname, setNickname] = useState('')
   const [avatar, setAvatar] = useState<Avatar>('🎮')
   const [manualCode, setManualCode] = useState('')
@@ -71,6 +79,7 @@ export default function BattleshipLobby() {
     socket.on('disconnect', () => setStatus('offline'))
     socket.on('room:created', ({ room: nextRoom, session }) => {
       saveSession(nextRoom.code, session)
+      setSession(session)
       setRoom(nextRoom)
       setRoomCode(nextRoom.code); activeRoomCodeRef.current = nextRoom.code
       setSubmitting(false)
@@ -78,10 +87,13 @@ export default function BattleshipLobby() {
     })
     socket.on('room:joined', ({ room: nextRoom, session }) => {
       saveSession(nextRoom.code, session)
+      setSession(session)
       setRoom(nextRoom)
       setSubmitting(false)
     })
     socket.on('room:state', setRoom)
+    socket.on('game:state', setBattle)
+    socket.on('game:effect', payload => { setEffect(payload.type === 'hit' ? '💥 TOUCHÉ !' : payload.type === 'miss' ? '💨 À L’EAU' : payload.type === 'win' ? '🏆 VICTOIRE !' : 'À TOI !'); window.setTimeout(() => setEffect(''), 1200) })
     socket.on('room:error', payload => { setError(payload.message); setSubmitting(false) })
     socket.on('room:expired', payload => {
       if (payload.roomCode === activeRoomCodeRef.current) { clearSession(); setRoom(null); setError('Cette salle a expiré. Crée une nouvelle partie.'); setSubmitting(false) }
@@ -124,9 +136,13 @@ export default function BattleshipLobby() {
     navigate('/arcade')
   }
 
+  function readyForBattle(): void { if (room) socketRef.current?.emit('game:ready', { roomCode: room.code }) }
+  function fire(cell: number): void { if (room) socketRef.current?.emit('game:fire', { roomCode: room.code, cell }) }
+
   if (room) {
     const full = room.players.length === 2 && room.players.every(player => player.connected)
-    return <main className="min-h-screen bg-[#231F20] px-4 py-7 text-white sm:px-6"><div className="mx-auto w-full max-w-lg"><Link to="/arcade" onClick={leaveRoom} className="text-sm font-bold text-white/65 hover:text-white">← Retour à l’arcade</Link><section className="mt-6 rounded-[2rem] border border-white/10 bg-[#2a2020] p-5 shadow-2xl sm:p-8"><p className="text-center text-xs font-black tracking-[.22em] text-[#FBB040]">BATAILLE NAVALE · PROTOTYPE</p><h1 className="mt-2 text-center text-3xl font-black sm:text-4xl">Salle {room.code}</h1><div className={`mt-5 rounded-2xl px-4 py-3 text-center font-black ${full ? 'bg-[#8DC63F]/20 text-[#c4ed84]' : 'bg-white/5 text-white/75'}`}>{full ? '2/2 joueurs connectés' : `${room.players.length}/2 joueurs connectés`}</div><div className="mt-5 grid gap-3"><PlayerCard player={room.players[0]} /><PlayerCard player={room.players[1]} /></div>{!full && <div className="mt-6 rounded-2xl bg-white p-4 text-center text-[#231F20]"><p className="mb-3 text-sm font-bold">Invite un ami avec ce QR ou le code.</p><div className="mx-auto w-fit rounded-xl bg-white p-2"><QRCodeSVG value={inviteUrl} size={180} level="M" includeMargin /></div><p className="mt-3 font-mono text-2xl font-black tracking-[.28em]">{room.code}</p><p className="mt-2 break-all text-xs text-[#231F20]/60">{inviteUrl}</p></div>}{full && <p className="mt-6 text-center text-sm text-white/60">La connexion est prête. Le jeu arrivera dans la prochaine phase.</p>}<button onClick={leaveRoom} className="mt-6 min-h-12 w-full rounded-2xl border border-white/20 font-black text-white/75 hover:bg-white/10">Quitter la salle</button></section></div></main>
+    const won = battle?.winnerId === session?.playerId
+    return <main className="min-h-screen bg-[#231F20] px-4 py-7 text-white sm:px-6"><div className="mx-auto w-full max-w-2xl"><Link to="/arcade" onClick={leaveRoom} className="text-sm font-bold text-white/65 hover:text-white">← Retour à l’arcade</Link><section className="mt-6 rounded-[2rem] border border-[#29ABE2]/25 bg-[#2a2020] p-5 shadow-2xl sm:p-8"><p className="text-center text-xs font-black tracking-[.22em] text-[#F05063]">BATAILLE NAVALE · MDJ</p><h1 className="mt-2 text-center text-3xl font-black sm:text-4xl">Salle {room.code}</h1><div className={`mt-5 rounded-2xl px-4 py-3 text-center font-black ${full ? 'bg-[#29ABE2]/15 text-[#9edfff]' : 'bg-white/5 text-white/75'}`}>{full ? '2/2 joueurs connectés' : `${room.players.length}/2 joueurs connectés`}</div>{!full && <div className="mt-6 rounded-2xl bg-white p-4 text-center text-[#231F20]"><p className="mb-3 text-sm font-bold">Invite un ami avec ce QR ou le code.</p><div className="mx-auto w-fit rounded-xl bg-white p-2"><QRCodeSVG value={inviteUrl} size={180} level="M" includeMargin /></div><p className="mt-3 font-mono text-2xl font-black tracking-[.28em]">{room.code}</p></div>}{full && !battle && <div className="mt-6 text-center"><p className="text-white/65">Prêt à défendre ton quartier? Tes navires seront placés secrètement.</p><button onClick={readyForBattle} className="mt-5 min-h-14 rounded-2xl bg-gradient-to-r from-[#29ABE2] to-[#F05063] px-7 font-black active:scale-[.98]">PLACER MES NAVIRES</button></div>}{battle && <div className="mt-6"><p className={`rounded-xl px-3 py-2 text-center text-sm font-black ${battle.phase === 'finished' ? 'bg-[#F05063]/20 text-[#ffb1ba]' : battle.yourTurn ? 'bg-[#29ABE2]/20 text-[#9edfff]' : 'bg-white/5 text-white/55'}`}>{battle.phase === 'placement' ? 'En attente de l’autre joueur…' : battle.phase === 'finished' ? (won ? '🏆 Tu as gagné !' : '💥 Ton adversaire gagne cette manche.') : battle.yourTurn ? 'À TOI DE JOUER' : 'Tour de ton adversaire…'}</p>{effect && <p className="mt-3 animate-pulse text-center text-xl font-black text-[#FBB040]">{effect}</p>}<div className="mt-5 grid gap-5 md:grid-cols-2"><div><p className="mb-2 text-xs font-black tracking-widest text-[#29ABE2]">TES NAVIRES</p><BattleBoard cells={battle.yourBoard} /></div><div><p className="mb-2 text-xs font-black tracking-widest text-[#F05063]">VISE L’ADVERSAIRE</p><BattleBoard cells={battle.targetBoard} target active={battle.phase === 'playing' && battle.yourTurn} onFire={fire} /></div></div><p className="mt-4 text-center text-xs text-white/45">Bleu: navires · Rouge: touché · Gris: à l’eau</p></div>}<button onClick={leaveRoom} className="mt-6 min-h-12 w-full rounded-2xl border border-white/20 font-black text-white/75 hover:bg-white/10">Quitter la salle</button></section></div></main>
   }
 
   return <main className="min-h-screen bg-[#231F20] px-4 py-7 text-white sm:px-6"><div className="mx-auto w-full max-w-md"><Link to="/arcade" className="text-sm font-bold text-white/65 hover:text-white">← Retour à l’arcade</Link><section className="mt-6 rounded-[2rem] border border-white/10 bg-[#2a2020] p-5 shadow-2xl sm:p-8"><p className="text-center text-xs font-black tracking-[.22em] text-[#FBB040]">MULTIJOUEUR · PROTOTYPE</p><h1 className="mt-2 text-center text-3xl font-black sm:text-4xl">Bataille navale</h1><p className="mt-3 text-center text-sm text-white/60">Crée une salle privée ou rejoins un ami. Aucun compte requis.</p>{!hasRoomTarget && !showManualJoin && <div className="mt-7 grid gap-3"><button onClick={() => setShowManualJoin(true)} className="min-h-14 rounded-2xl border-2 border-[#29ABE2] font-black text-[#8ed9ff] active:scale-[.98]">J’ai un code de salle</button></div>}{(!hasRoomTarget && showManualJoin) && <div className="mt-6"><label className="text-sm font-bold">Code de salle</label><input value={manualCode} onChange={event => setManualCode(event.target.value.toUpperCase())} maxLength={6} placeholder="ABC123" className="mt-2 min-h-14 w-full rounded-2xl border border-white/15 bg-white/5 px-4 font-mono text-xl font-black tracking-[.25em] uppercase outline-none focus:border-[#29ABE2]" /><button onClick={openManualRoom} className="mt-3 min-h-14 w-full rounded-2xl bg-[#29ABE2] font-black text-[#231F20] active:scale-[.98]">Continuer</button></div>}{(hasRoomTarget || !showManualJoin) && <div className="mt-7"><p className="mb-2 text-sm font-bold">{hasRoomTarget ? `Rejoindre la salle ${roomCode}` : 'Créer une salle'}</p><label className="text-sm font-bold" htmlFor="nickname">Ton pseudo temporaire</label><input id="nickname" value={nickname} onChange={event => setNickname(event.target.value.slice(0, MAX_NICKNAME_LENGTH))} maxLength={MAX_NICKNAME_LENGTH} placeholder="Ex. RDP_KING" className="mt-2 min-h-14 w-full rounded-2xl border border-white/15 bg-white/5 px-4 text-base font-bold outline-none focus:border-[#FBB040]" /><p className="mt-4 text-sm font-bold">Ton avatar</p><div className="mt-2"><AvatarPicker value={avatar} onChange={setAvatar} /></div><button disabled={submitting || status !== 'ready'} onClick={hasRoomTarget ? joinRoom : createRoom} className="mt-6 min-h-14 w-full rounded-2xl bg-gradient-to-r from-[#FBB040] to-[#F05063] px-5 font-black text-white disabled:cursor-not-allowed disabled:opacity-50 active:scale-[.98]">{submitting ? 'Connexion…' : hasRoomTarget ? 'Rejoindre la salle' : 'Créer ma salle'}</button></div>}{error && <p role="alert" className="mt-4 rounded-xl bg-[#F05063]/15 px-4 py-3 text-center text-sm font-semibold text-[#ffb0b9]">{error}</p>}<p className="mt-5 text-center text-xs text-white/40">{status === 'ready' ? '● Serveur connecté' : status === 'offline' ? '● Serveur indisponible' : '● Connexion au serveur…'}</p></section></div></main>

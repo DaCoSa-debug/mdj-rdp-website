@@ -29,6 +29,8 @@ export const resumeRoomSchema = z.object({
 })
 
 export const leaveRoomSchema = z.object({ roomCode: roomCodeSchema })
+export const gameReadySchema = z.object({ roomCode: roomCodeSchema })
+export const fireSchema = z.object({ roomCode: roomCodeSchema, cell: z.number().int().min(0).max(99) })
 
 export type PublicPlayer = {
   id: string
@@ -52,11 +54,22 @@ export type PlayerSession = {
 
 export type RoomErrorCode = 'INVALID_PAYLOAD' | 'ROOM_NOT_FOUND' | 'ROOM_FULL' | 'SESSION_INVALID' | 'ROOM_EXPIRED' | 'RATE_LIMITED'
 
+export type BattleCell = 'ship' | 'hit' | 'miss'
+export type BattleState = {
+  phase: 'placement' | 'playing' | 'finished'
+  yourBoard: Record<number, BattleCell>
+  targetBoard: Record<number, 'hit' | 'miss'>
+  yourTurn: boolean
+  winnerId?: string
+}
+
 export type ClientToServerEvents = {
   'room:create': (payload: z.infer<typeof createRoomSchema>) => void
   'room:join': (payload: z.infer<typeof joinRoomSchema>) => void
   'room:resume': (payload: z.infer<typeof resumeRoomSchema>) => void
   'room:leave': (payload: z.infer<typeof leaveRoomSchema>) => void
+  'game:ready': (payload: z.infer<typeof gameReadySchema>) => void
+  'game:fire': (payload: z.infer<typeof fireSchema>) => void
 }
 
 export type ServerToClientEvents = {
@@ -67,4 +80,6 @@ export type ServerToClientEvents = {
   'room:expired': (payload: { roomCode: string }) => void
   'player:joined': (player: PublicPlayer) => void
   'player:left': (player: PublicPlayer) => void
+  'game:state': (state: BattleState) => void
+  'game:effect': (payload: { type: 'hit' | 'miss' | 'turn' | 'win' }) => void
 }

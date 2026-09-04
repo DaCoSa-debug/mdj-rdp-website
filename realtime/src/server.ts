@@ -2,6 +2,8 @@ import { createServer } from 'node:http'
 import { Server } from 'socket.io'
 import {
   createRoomSchema,
+  fireSchema,
+  gameReadySchema,
   joinRoomSchema,
   leaveRoomSchema,
   resumeRoomSchema,
@@ -10,6 +12,7 @@ import {
   type ServerToClientEvents,
 } from '../../shared/multiplayerProtocol.js'
 import { RoomManager, RoomManagerError } from './core/RoomManager.js'
+import { BattleshipError, BattleshipManager } from './games/BattleshipManager.js'
 
 const port = Number(process.env.PORT ?? 3002)
 const allowedOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:5173').split(',').map(value => value.trim()).filter(Boolean)
@@ -30,11 +33,21 @@ export function createRealtimeServer(options: { manager?: RoomManager; corsOrigi
   })
   const manager = options.manager ?? new RoomManager(undefined, ttlMinutes * 60 * 1000)
   const roomBySocket = new Map<string, string>()
+  const playerBySocket = new Map<string, string>()
+  const battleship = new BattleshipManager()
   const requestsBySocket = new Map<string, { count: number; startedAt: number }>()
 
   const emitRoomState = (code: string) => {
     const room = manager.getRoom(code)
     if (room) io.to(code).emit('room:state', room)
+  }
+  const emitBattleState = (code: string) => {
+    const room = manager.getRoom(code)
+    if (!room) return
+    room.players.forEach(player => {
+      const state = battleship.state(code, player.id)
+      if (state && player.connected) io.to(player.id).emit('game:state', state)
+    })
   }
 
   const errorFor = (error: unknown): { code: RoomErrorCode; message: string } => {
@@ -46,6 +59,7 @@ export function createRealtimeServer(options: { manager?: RoomManager; corsOrigi
       }
       return { code: error.code, message: messages[error.code] }
     }
+    if (error instanceof BattleshipError) return { code: 'INVALID_PAYLOAD', message: error.message }
     return { code: 'INVALID_PAYLOAD', message: 'La demande est invalide.' }
   }
 
@@ -77,14 +91,18 @@ export function createRealtimeServer(options: { manager?: RoomManager; corsOrigi
     socket.on('room:create', guarded(createRoomSchema, payload => {
       const result = manager.createRoom(payload.gameType, payload.nickname.trim(), payload.avatar, socket.id)
       roomBySocket.set(socket.id, result.room.code)
+      playerBySocket.set(socket.id, result.session.playerId)
       socket.join(result.room.code)
+      socket.join(result.session.playerId)
       socket.emit('room:created', { room: result.room, session: result.session })
     }))
 
     socket.on('room:join', guarded(joinRoomSchema, payload => {
       const result = manager.joinRoom(payload.roomCode, payload.nickname.trim(), payload.avatar, socket.id)
       roomBySocket.set(socket.id, result.room.code)
+      playerBySocket.set(socket.id, result.session.playerId)
       socket.join(result.room.code)
+      socket.join(result.session.playerId)
       socket.emit('room:joined', { room: result.room, session: result.session })
       socket.to(result.room.code).emit('player:joined', { id: result.player.id, nickname: result.player.nickname, avatar: result.player.avatar, connected: true })
       emitRoomState(result.room.code)
@@ -93,21 +111,42 @@ export function createRealtimeServer(options: { manager?: RoomManager; corsOrigi
     socket.on('room:resume', guarded(resumeRoomSchema, payload => {
       const result = manager.resumeRoom(payload.roomCode, payload.playerId, payload.sessionToken, socket.id)
       roomBySocket.set(socket.id, result.room.code)
+      playerBySocket.set(socket.id, payload.playerId)
       socket.join(result.room.code)
+      socket.join(payload.playerId)
       socket.emit('room:joined', { room: result.room, session: { playerId: payload.playerId, sessionToken: payload.sessionToken } })
       emitRoomState(result.room.code)
+      emitBattleState(result.room.code)
     }))
 
     socket.on('room:leave', guarded(leaveRoomSchema, payload => {
       const result = manager.leaveRoom(payload.roomCode, socket.id)
       roomBySocket.delete(socket.id)
+      playerBySocket.delete(socket.id)
       socket.leave(payload.roomCode)
       if (result.player) socket.to(payload.roomCode).emit('player:left', { id: result.player.id, nickname: result.player.nickname, avatar: result.player.avatar, connected: false })
       emitRoomState(payload.roomCode)
     }))
 
+    socket.on('game:ready', guarded(gameReadySchema, payload => {
+      const room = manager.getRoom(payload.roomCode)
+      const playerId = playerBySocket.get(socket.id)
+      if (!room || !playerId) throw new BattleshipError('Session de jeu introuvable.')
+      battleship.prepare(payload.roomCode, room.players.map(player => player.id), playerId)
+      emitBattleState(payload.roomCode)
+    }))
+
+    socket.on('game:fire', guarded(fireSchema, payload => {
+      const playerId = playerBySocket.get(socket.id)
+      if (!playerId) throw new BattleshipError('Session de jeu introuvable.')
+      const result = battleship.fire(payload.roomCode, playerId, payload.cell)
+      io.to(payload.roomCode).emit('game:effect', { type: result.winner ? 'win' : result.hit ? 'hit' : 'miss' })
+      emitBattleState(payload.roomCode)
+    }))
+
     socket.on('disconnect', () => {
       requestsBySocket.delete(socket.id)
+      playerBySocket.delete(socket.id)
       const code = roomBySocket.get(socket.id)
       roomBySocket.delete(socket.id)
       const result = manager.disconnect(socket.id)
@@ -117,7 +156,7 @@ export function createRealtimeServer(options: { manager?: RoomManager; corsOrigi
   })
 
   const expiryTimer = setInterval(() => {
-    manager.expireInactiveRooms().forEach(room => io.to(room.code).emit('room:expired', { roomCode: room.code }))
+    manager.expireInactiveRooms().forEach(room => { battleship.delete(room.code); io.to(room.code).emit('room:expired', { roomCode: room.code }) })
   }, 60_000)
   expiryTimer.unref()
 
