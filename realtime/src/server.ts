@@ -2,6 +2,7 @@ import { createServer } from 'node:http'
 import { Server } from 'socket.io'
 import {
   createRoomSchema,
+  emoteSchema,
   fireSchema,
   gameReadySchema,
   joinRoomSchema,
@@ -143,6 +144,14 @@ export function createRealtimeServer(options: { manager?: RoomManager; corsOrigi
       const result = battleship.fire(payload.roomCode, playerId, payload.cell)
       io.to(payload.roomCode).emit('game:effect', { type: result.winner ? 'win' : result.hit ? 'hit' : 'miss' })
       emitBattleState(payload.roomCode)
+    }))
+
+    socket.on('game:emote', guarded(emoteSchema, payload => {
+      const playerId = playerBySocket.get(socket.id)
+      const room = manager.getRoom(payload.roomCode)
+      const player = room?.players.find(candidate => candidate.id === playerId)
+      if (!player || !playerId) throw new BattleshipError('Session de jeu introuvable.')
+      io.to(payload.roomCode).emit('game:emote', { playerId, nickname: player.nickname, emoji: payload.emoji })
     }))
 
     socket.on('disconnect', () => {

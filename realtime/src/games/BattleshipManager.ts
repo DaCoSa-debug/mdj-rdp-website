@@ -44,7 +44,7 @@ export class BattleshipManager {
     const target = game.players.find(id => id !== playerId)!
     const targetBoard: Record<number, 'hit' | 'miss'> = {}
     for (const cell of game.shots.get(target) ?? []) targetBoard[cell] = (game.boards.get(playerId)?.has(cell) ?? false) ? 'hit' : 'miss'
-    return { phase: game.winner ? 'finished' : game.turn ? 'playing' : 'placement', yourBoard: ownBoard, targetBoard, yourTurn: game.turn === playerId, winnerId: game.winner }
+    return { phase: game.winner ? 'finished' : game.turn ? 'playing' : 'placement', yourBoard: ownBoard, targetBoard, yourTurn: game.turn === playerId, yourFleetReady: game.ready.has(playerId), winnerId: game.winner }
   }
 
   hasGame(roomCode: string): boolean { return this.games.has(roomCode) }

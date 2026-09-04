@@ -31,6 +31,8 @@ export const resumeRoomSchema = z.object({
 export const leaveRoomSchema = z.object({ roomCode: roomCodeSchema })
 export const gameReadySchema = z.object({ roomCode: roomCodeSchema })
 export const fireSchema = z.object({ roomCode: roomCodeSchema, cell: z.number().int().min(0).max(99) })
+export const EMOTES = ['🔥', '😅', '😎', '💥', '👏', '👋'] as const
+export const emoteSchema = z.object({ roomCode: roomCodeSchema, emoji: z.enum(EMOTES) })
 
 export type PublicPlayer = {
   id: string
@@ -60,6 +62,7 @@ export type BattleState = {
   yourBoard: Record<number, BattleCell>
   targetBoard: Record<number, 'hit' | 'miss'>
   yourTurn: boolean
+  yourFleetReady: boolean
   winnerId?: string
 }
 
@@ -70,6 +73,7 @@ export type ClientToServerEvents = {
   'room:leave': (payload: z.infer<typeof leaveRoomSchema>) => void
   'game:ready': (payload: z.infer<typeof gameReadySchema>) => void
   'game:fire': (payload: z.infer<typeof fireSchema>) => void
+  'game:emote': (payload: z.infer<typeof emoteSchema>) => void
 }
 
 export type ServerToClientEvents = {
@@ -82,4 +86,5 @@ export type ServerToClientEvents = {
   'player:left': (player: PublicPlayer) => void
   'game:state': (state: BattleState) => void
   'game:effect': (payload: { type: 'hit' | 'miss' | 'turn' | 'win' }) => void
+  'game:emote': (payload: { playerId: string; nickname: string; emoji: z.infer<typeof emoteSchema>['emoji'] }) => void
 }
