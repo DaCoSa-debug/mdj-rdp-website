@@ -7,14 +7,22 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:realtime": "tsx realtime/src/server.ts",
+    "start:realtime": "tsx realtime/src/server.ts",
+    "typecheck:realtime": "tsc --noEmit -p tsconfig.realtime.json",
+    "test:realtime": "vitest run"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.3",
     "lucide-react": "^1.25.0",
+    "qrcode.react": "^4.2.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "react-router-dom": "^7.18.1"
+    "react-router-dom": "^7.18.1",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3",
+    "zod": "^4.5.4"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
@@ -26,7 +34,9 @@
     "oxlint": "^1.71.0",
     "postcss": "^8.5.20",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.23.13",
     "typescript": "~6.0.2",
-    "vite": "^8.1.1"
+    "vite": "^8.1.1",
+    "vitest": "^5.0.0"
   }
 }

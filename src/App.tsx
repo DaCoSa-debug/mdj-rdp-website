@@ -10,6 +10,7 @@ import CIEC from './pages/CIEC'
 import EspaceParents from './pages/EspaceParents'
 import Emplois from './pages/Emplois'
 import Arcade from './pages/Arcade'
+import BattleshipLobby from './pages/BattleshipLobby'
 import Contact from './pages/Contact'
 import Don from './pages/Don'
 
@@ -27,6 +28,8 @@ export default function App() {
         <Route path="/espace-parents" element={<EspaceParents />} />
         <Route path="/emplois" element={<Emplois />} />
         <Route path="/arcade" element={<Arcade />} />
+        <Route path="/arcade/battleship" element={<BattleshipLobby />} />
+        <Route path="/arcade/battleship/join/:roomCode" element={<BattleshipLobby />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/don" element={<Don />} />
       </Routes>
