@@ -94,7 +94,7 @@ export default function BattleshipLobby() {
     })
     socket.on('room:state', setRoom)
     socket.on('game:state', setBattle)
-    socket.on('game:effect', payload => { setEffect(payload.type === 'hit' ? '💥 TOUCHÉ !' : payload.type === 'miss' ? '🌊 À L’EAU !' : payload.type === 'win' ? '🏆 VICTOIRE !' : 'À TOI !'); window.setTimeout(() => setEffect(''), 1500) })
+    socket.on('game:effect', payload => { setEffect(payload.type === 'sunk' ? '🚢 NAVIRE COULÉ !' : payload.type === 'hit' ? '💥 TOUCHÉ !' : payload.type === 'miss' ? '🌊 À L’EAU !' : payload.type === 'win' ? '🏆 VICTOIRE !' : 'À TOI !'); window.setTimeout(() => setEffect(''), 1500) })
     socket.on('game:emote', payload => { setEmote(`${payload.nickname} ${payload.emoji}`); window.setTimeout(() => setEmote(''), 1800) })
     socket.on('room:error', payload => { setError(payload.message); setSubmitting(false) })
     socket.on('room:expired', payload => {

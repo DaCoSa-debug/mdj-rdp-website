@@ -142,7 +142,7 @@ export function createRealtimeServer(options: { manager?: RoomManager; corsOrigi
       const playerId = playerBySocket.get(socket.id)
       if (!playerId) throw new BattleshipError('Session de jeu introuvable.')
       const result = battleship.fire(payload.roomCode, playerId, payload.cell)
-      socket.emit('game:effect', { type: result.winner ? 'win' : result.hit ? 'hit' : 'miss' })
+      socket.emit('game:effect', { type: result.winner ? 'win' : result.sunk ? 'sunk' : result.hit ? 'hit' : 'miss' })
       emitBattleState(payload.roomCode)
     }))
 

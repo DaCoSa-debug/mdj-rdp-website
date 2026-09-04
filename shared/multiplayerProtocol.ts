@@ -85,6 +85,6 @@ export type ServerToClientEvents = {
   'player:joined': (player: PublicPlayer) => void
   'player:left': (player: PublicPlayer) => void
   'game:state': (state: BattleState) => void
-  'game:effect': (payload: { type: 'hit' | 'miss' | 'turn' | 'win' }) => void
+  'game:effect': (payload: { type: 'hit' | 'miss' | 'sunk' | 'turn' | 'win' }) => void
   'game:emote': (payload: { playerId: string; nickname: string; emoji: z.infer<typeof emoteSchema>['emoji'] }) => void
 }
