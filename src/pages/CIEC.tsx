@@ -117,9 +117,17 @@ export default function CIEC() {
                 </div>
               </div>
 
-              {/* Right — image placeholder */}
-              <div className="aspect-[4/3] rounded-[2rem] bg-gradient-to-br from-pink-100 to-blue-100 flex items-center justify-center">
-                <span className="text-gray-400 select-none">📸 Photo CIEC</span>
+              {/* Right — image */}
+              <div className="aspect-[4/3] rounded-[2rem] overflow-hidden">
+                <img
+                  src="/images/home/mdj-rdp-communaute-jeunes.webp"
+                  alt="Jeunes réunis devant la Maison des jeunes de Rivière-des-Prairies à Montréal"
+                  width={1584}
+                  height={672}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-full w-full object-cover"
+                />
               </div>
 
             </div>

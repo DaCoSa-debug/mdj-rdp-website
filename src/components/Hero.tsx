@@ -92,7 +92,15 @@ export default function Hero() {
           {/* ── RIGHT COLUMN — image ── */}
           <div className="relative z-10 mt-12 lg:mt-0">
             <div className="relative aspect-[4/5] md:aspect-square rounded-[2rem] overflow-hidden bg-gradient-to-br from-pink-100 to-blue-100 flex items-center justify-center">
-              <span className="text-gray-400 text-lg select-none">📸 hero-youth.jpg</span>
+              <img
+                src="/images/home/mdj-rdp-jeunes-maison-hero.webp"
+                alt="Jeunes participent à des activités créatives et communautaires à la Maison des jeunes de Rivière-des-Prairies à Montréal"
+                width={1376}
+                height={768}
+                loading="eager"
+                decoding="async"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
 
               {/* Pink+blue overlay */}
               <div

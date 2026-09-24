@@ -1,5 +1,5 @@
 import './styles/globals.css'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import QuiSommesNous from './pages/QuiSommesNous'
 import Activites from './pages/Activites'
@@ -13,10 +13,14 @@ import Arcade from './pages/Arcade'
 import BattleshipLobby from './pages/BattleshipLobby'
 import Contact from './pages/Contact'
 import Don from './pages/Don'
+import SEO from './components/SEO'
 
 export default function App() {
+  const location = useLocation()
+
   return (
     <BrowserRouter>
+      <SEO path={location.pathname} search={location.search} />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/qui-sommes-nous" element={<QuiSommesNous />} />

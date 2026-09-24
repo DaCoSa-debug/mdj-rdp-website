@@ -15,6 +15,10 @@ const categories = [
     Icon:       Trophy,
     iconColor:  ORANGE,
     title:      'Sport & Plein air',
+    imageSrc:   '/images/activites/mdj-rdp-jeunes-activite-sport.webp',
+    imageAlt:   "Activité sportive organisée à la Maison des jeunes de Rivière-des-Prairies à Montréal",
+    imageWidth: 1376,
+    imageHeight: 768,
     text:       'Basketball, soccer, volleyball, plein air et activités sportives pour bouger et se dépasser.',
     activities: ['Basketball inter-MDJ', 'Soccer en plein air', 'Volleyball', 'Randonnée & plein air'],
     ctaColor:   ORANGE,
@@ -25,6 +29,10 @@ const categories = [
     Icon:       Palette,
     iconColor:  PINK,
     title:      'Art & Musique',
+    imageSrc:   '/images/activites/mdj-rdp-jeunes-atelier-creatif.webp',
+    imageAlt:   "Atelier créatif et artistique pour jeunes à la Maison des jeunes de Rivière-des-Prairies à Montréal",
+    imageWidth: 1200,
+    imageHeight: 896,
     text:       'Musique, danse, arts visuels, théâtre. Exprime ta créativité dans un espace pensé pour toi.',
     activities: ['Musique & chant', 'Arts visuels', 'Danse', 'Théâtre & impro'],
     ctaColor:   PINK,
@@ -35,6 +43,10 @@ const categories = [
     Icon:       Rocket,
     iconColor:  BLUE,
     title:      'Entrepreneuriat',
+    imageSrc:   '/images/galerie/mdj-rdp-jeunes-atelier-ciec-entrepreneuriat.webp',
+    imageAlt:   "Jeunes participants à un atelier d'entrepreneuriat CIEC",
+    imageWidth: 1200,
+    imageHeight: 896,
     text:       'Développe tes compétences en affaires et rejoins la CIEC pour lancer ton projet.',
     activities: ['CIEC program', 'Pitch & présentation', 'Mentorat', 'Réseau jeunesse'],
     ctaColor:   BLUE,
@@ -87,11 +99,17 @@ export default function Activites() {
             </h2>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {categories.map(({ band, iconBg, Icon, iconColor, title, text, activities, ctaColor }) => (
+              {categories.map(({ band, iconBg, Icon, iconColor, title, imageSrc, imageAlt, imageWidth, imageHeight, text, activities, ctaColor }) => (
                 <div key={title} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                   {/* Top color band */}
                   <div className="h-2" style={{ background: band }} />
-                  <div className="p-8">
+                  {/* Image */}
+                  {imageSrc && (
+                    <div className="relative aspect-video overflow-hidden">
+                      <img src={imageSrc} alt={imageAlt} width={imageWidth} height={imageHeight} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                    </div>
+                  )}
+                  <div className={`p-8 ${imageSrc ? 'pt-4' : ''}`}>
                     {/* Icon */}
                     <div className={`w-14 h-14 rounded-2xl ${iconBg} flex items-center justify-center mb-4`}>
                       <Icon size={24} strokeWidth={2} style={{ color: iconColor }} />

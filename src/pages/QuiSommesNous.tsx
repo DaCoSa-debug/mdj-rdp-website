@@ -80,9 +80,30 @@ export default function QuiSommesNous() {
                 </Link>
               </div>
 
-              {/* Right — image placeholder */}
-              <div className="aspect-[4/3] rounded-[2rem] bg-gradient-to-br from-orange-100 to-pink-100 flex items-center justify-center">
-                <span className="text-gray-400 select-none">📸 Photo équipe MDJ</span>
+              {/* Right — images */}
+              <div className="flex flex-col gap-6">
+                <div className="aspect-[4/3] rounded-[2rem] overflow-hidden">
+                  <img
+                    src="/images/about/mdj-rdp-equipe-jeunes.webp"
+                    alt="Équipe animatrice et jeunes en interaction dans les locaux de la Maison des jeunes de Rivière-des-Prairies à Montréal"
+                    width={1264}
+                    height={848}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="aspect-[16/9] rounded-[2rem] overflow-hidden">
+                  <img
+                    src="/images/about/mdj-rdp-communaute-rdp.webp"
+                    alt="Jeunes de Rivière-des-Prairies qui se réunissent dans leur quartier"
+                    width={1376}
+                    height={768}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
               </div>
 
             </div>

@@ -9,6 +9,10 @@ type TabId = 'sport' | 'art' | 'entrepreneuriat'
 interface TabContent {
   imageBg: string
   imageLabel: string
+  imageSrc?: string
+  imageAlt: string
+  imageWidth: number
+  imageHeight: number
   heading: string
   body: string
   items: string[]
@@ -18,6 +22,10 @@ const content: Record<TabId, TabContent> = {
   sport: {
     imageBg:    'from-orange-100 to-pink-100',
     imageLabel: 'Sport',
+    imageSrc:   '/images/activites/mdj-rdp-jeunes-activite-sport.webp',
+    imageAlt:   "Jeunes en activité sportive à la Maison des jeunes de Rivière-des-Prairies à Montréal",
+    imageWidth: 1376,
+    imageHeight: 768,
     heading:    'Bouger, jouer, se dépasser',
     body:       'Basketball, soccer, volleyball, plein air et bien plus. On bouge ensemble pour se dépasser et faire des rencontres inoubliables.',
     items:      ['Basketball inter-MDJ', 'Soccer en plein air', 'Danse & fitness'],
@@ -25,6 +33,10 @@ const content: Record<TabId, TabContent> = {
   art: {
     imageBg:    'from-purple-100 to-pink-100',
     imageLabel: 'Art & Musique',
+    imageSrc:   '/images/activites/mdj-rdp-jeunes-atelier-creatif.webp',
+    imageAlt:   "Jeunes participent à un atelier créatif à la Maison des jeunes de Rivière-des-Prairies à Montréal",
+    imageWidth: 1200,
+    imageHeight: 896,
     heading:    "Créer, exprimer, s'inspirer",
     body:       "Musique, danse, arts visuels, théâtre. Exprime ta créativité dans un espace pensé pour toi.",
     items:      ['Musique & chant', 'Arts visuels', 'Théâtre & impro'],
@@ -32,6 +44,10 @@ const content: Record<TabId, TabContent> = {
   entrepreneuriat: {
     imageBg:    'from-blue-100 to-green-100',
     imageLabel: 'Entrepreneuriat',
+    imageSrc:   '/images/galerie/mdj-rdp-jeunes-atelier-ciec-entrepreneuriat.webp',
+    imageAlt:   "Jeunes participants à un atelier d'entrepreneuriat CIEC",
+    imageWidth: 1200,
+    imageHeight: 896,
     heading:    'Entreprendre avant le cégep',
     body:       'Développe tes compétences en affaires, lance tes propres projets et rejoins un réseau de jeunes leaders.',
     items:      ['CIEC program', 'Pitch & présentation', 'Mentorat'],
@@ -73,8 +89,19 @@ export default function Programs() {
         {/* 2-col grid */}
         <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
 
-          {/* LEFT — image placeholder */}
+          {/* LEFT — image */}
           <div className={`relative w-full aspect-[4/3] rounded-3xl overflow-hidden bg-gradient-to-br ${tab.imageBg}`}>
+            {tab.imageSrc && (
+              <img
+                src={tab.imageSrc}
+                alt={tab.imageAlt}
+                width={tab.imageWidth}
+                height={tab.imageHeight}
+                loading="lazy"
+                decoding="async"
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
             {/* Orange overlay */}
             <div
               aria-hidden="true"
