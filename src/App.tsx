@@ -1,5 +1,5 @@
 import './styles/globals.css'
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import QuiSommesNous from './pages/QuiSommesNous'
 import Activites from './pages/Activites'
@@ -19,7 +19,7 @@ export default function App() {
   const location = useLocation()
 
   return (
-    <BrowserRouter>
+    <>
       <SEO path={location.pathname} search={location.search} />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -37,6 +37,6 @@ export default function App() {
         <Route path="/contact" element={<Contact />} />
         <Route path="/don" element={<Don />} />
       </Routes>
-    </BrowserRouter>
+    </>
   )
 }
