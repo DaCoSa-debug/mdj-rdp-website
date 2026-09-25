@@ -1,6 +1,6 @@
 import { customAlphabet, nanoid } from 'nanoid'
-import type { Avatar, GameType, PlayerSession, PublicRoomState } from '../../../shared/multiplayerProtocol.js'
-import { InMemoryRoomStore, type Room, type RoomPlayer, type RoomStore, toPublicRoom } from './RoomStore.js'
+import type { Avatar, GameType, HostSession, PlayerSession, PublicRoomState } from '../../../shared/multiplayerProtocol.js'
+import { InMemoryRoomStore, type Room, type RoomHost, type RoomPlayer, type RoomStore, toPublicRoom, toPublicRoomWithHost } from './RoomStore.js'
 
 const roomCode = customAlphabet('ABCDEFGHJKLMNPQRSTUVWXYZ23456789', 6)
 
@@ -22,18 +22,30 @@ export class RoomManager {
 
     const player = this.newPlayer(nickname, avatar, socketId)
     const now = this.now()
-    const room: Room = { code, gameType, players: [player], createdAt: now, lastActivityAt: now }
+    const room: Room = { code, gameType, players: [player], capacity: 2, hostId: undefined, createdAt: now, lastActivityAt: now }
     this.store.create(room)
-    return { room: this.publicRoom(room), session: this.sessionFor(player) }
+    return { room: this.publicRoom(room), session: this.sessionForPlayer(player) }
+  }
+
+  createHostRoom(gameType: GameType, capacity: number, avatar: Avatar, socketId: string): { room: PublicRoomState; session: HostSession } {
+    let code = roomCode()
+    for (let attempt = 0; this.store.get(code) && attempt < 20; attempt += 1) code = roomCode()
+    if (this.store.get(code)) throw new Error('Unable to generate an available room code')
+
+    const host = this.newHost(avatar, socketId)
+    const now = this.now()
+    const room: Room = { code, gameType, players: [], capacity, hostId: host.id, host, createdAt: now, lastActivityAt: now }
+    this.store.create(room)
+    return { room: this.publicRoom(room), session: this.sessionForHost(host) }
   }
 
   joinRoom(code: string, nickname: string, avatar: Avatar, socketId: string): { room: PublicRoomState; session: PlayerSession; player: RoomPlayer } {
     const room = this.requireRoom(code)
-    if (room.players.length >= 2) throw new RoomManagerError('ROOM_FULL')
+    if (room.players.length >= room.capacity) throw new RoomManagerError('ROOM_FULL')
     const player = this.newPlayer(nickname, avatar, socketId)
     room.players.push(player)
     room.lastActivityAt = this.now()
-    return { room: this.publicRoom(room), session: this.sessionFor(player), player }
+    return { room: this.publicRoom(room), session: this.sessionForPlayer(player), player }
   }
 
   resumeRoom(code: string, playerId: string, sessionToken: string, socketId: string): { room: PublicRoomState; player: RoomPlayer } {
@@ -44,6 +56,17 @@ export class RoomManager {
     player.socketId = socketId
     room.lastActivityAt = this.now()
     return { room: this.publicRoom(room), player }
+  }
+
+  resumeHostRoom(code: string, hostId: string, sessionToken: string, socketId: string): { room: PublicRoomState; host: RoomHost } {
+    const room = this.requireRoom(code)
+    if (room.hostId !== hostId) throw new RoomManagerError('SESSION_INVALID')
+    const host = room.host
+    if (!host || host.sessionToken !== sessionToken) throw new RoomManagerError('SESSION_INVALID')
+    host.connected = true
+    host.socketId = socketId
+    room.lastActivityAt = this.now()
+    return { room: this.publicRoom(room), host }
   }
 
   leaveRoom(code: string, socketId: string): { room?: PublicRoomState; player?: RoomPlayer } {
@@ -87,6 +110,12 @@ export class RoomManager {
     return room ? this.publicRoom(room) : undefined
   }
 
+  getRoomWithHost(code: string): (PublicRoomState & { hasHost: boolean; hostAvatar: Avatar | undefined }) | undefined {
+    const room = this.store.get(code)
+    if (!room) return undefined
+    return toPublicRoomWithHost(room, room.lastActivityAt + this.ttlMs)
+  }
+
   private requireRoom(code: string): Room {
     const room = this.store.get(code)
     if (!room) throw new RoomManagerError('ROOM_NOT_FOUND')
@@ -97,11 +126,23 @@ export class RoomManager {
     return { id: nanoid(16), nickname, avatar, sessionToken: nanoid(32), connected: true, socketId }
   }
 
-  private sessionFor(player: RoomPlayer): PlayerSession {
+  private newHost(avatar: Avatar, socketId: string): RoomHost {
+    return { id: nanoid(16), avatar, sessionToken: nanoid(32), connected: true, socketId }
+  }
+
+  private sessionForPlayer(player: RoomPlayer): PlayerSession {
     return { playerId: player.id, sessionToken: player.sessionToken }
+  }
+
+  private sessionForHost(host: RoomHost): HostSession {
+    return { hostId: host.id, sessionToken: host.sessionToken }
   }
 
   private publicRoom(room: Room): PublicRoomState {
     return toPublicRoom(room, room.lastActivityAt + this.ttlMs)
+  }
+
+  private roomHasHost(room: Room): boolean {
+    return room.hostId !== undefined
   }
 }

@@ -22,6 +22,18 @@ export const joinRoomSchema = z.object({
   avatar: avatarSchema,
 })
 
+export const createHostRoomSchema = z.object({
+  gameType: z.enum(GAME_TYPES),
+  capacity: z.number().int().min(1).max(8).optional().default(2),
+  avatar: avatarSchema.optional(),
+})
+
+export const resumeHostSchema = z.object({
+  roomCode: roomCodeSchema,
+  hostId: z.string().min(12).max(64),
+  sessionToken: z.string().min(20).max(128),
+})
+
 export const resumeRoomSchema = z.object({
   roomCode: roomCodeSchema,
   playerId: z.string().min(12).max(64),
@@ -45,12 +57,22 @@ export type PublicRoomState = {
   code: string
   gameType: GameType
   players: PublicPlayer[]
-  capacity: 2
+  capacity: number
   expiresAt: string
+}
+
+export type PublicRoomStateWithHost = PublicRoomState & {
+  hasHost: boolean
+  hostAvatar: Avatar | undefined
 }
 
 export type PlayerSession = {
   playerId: string
+  sessionToken: string
+}
+
+export type HostSession = {
+  hostId: string
   sessionToken: string
 }
 
@@ -68,8 +90,10 @@ export type BattleState = {
 
 export type ClientToServerEvents = {
   'room:create': (payload: z.infer<typeof createRoomSchema>) => void
+  'room:host-create': (payload: z.infer<typeof createHostRoomSchema>) => void
   'room:join': (payload: z.infer<typeof joinRoomSchema>) => void
   'room:resume': (payload: z.infer<typeof resumeRoomSchema>) => void
+  'room:host-resume': (payload: z.infer<typeof resumeHostSchema>) => void
   'room:leave': (payload: z.infer<typeof leaveRoomSchema>) => void
   'game:ready': (payload: z.infer<typeof gameReadySchema>) => void
   'game:fire': (payload: z.infer<typeof fireSchema>) => void
@@ -78,8 +102,10 @@ export type ClientToServerEvents = {
 
 export type ServerToClientEvents = {
   'room:created': (payload: { room: PublicRoomState; session: PlayerSession }) => void
+  'room:host-created': (payload: { room: PublicRoomStateWithHost; session: HostSession }) => void
   'room:joined': (payload: { room: PublicRoomState; session: PlayerSession }) => void
   'room:state': (room: PublicRoomState) => void
+  'room:state-with-host': (room: PublicRoomStateWithHost) => void
   'room:error': (payload: { code: RoomErrorCode; message: string }) => void
   'room:expired': (payload: { roomCode: string }) => void
   'player:joined': (player: PublicPlayer) => void

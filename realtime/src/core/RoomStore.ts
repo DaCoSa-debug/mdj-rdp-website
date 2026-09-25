@@ -9,10 +9,21 @@ export type RoomPlayer = {
   socketId?: string
 }
 
+export type RoomHost = {
+  id: string
+  avatar: Avatar
+  sessionToken: string
+  connected: boolean
+  socketId?: string
+}
+
 export type Room = {
   code: string
   gameType: GameType
   players: RoomPlayer[]
+  capacity: number
+  hostId?: string
+  host?: RoomHost
   createdAt: number
   lastActivityAt: number
 }
@@ -37,8 +48,20 @@ export function toPublicRoom(room: Room, expiresAt: number): PublicRoomState {
   return {
     code: room.code,
     gameType: room.gameType,
-    capacity: 2,
+    capacity: room.capacity,
     expiresAt: new Date(expiresAt).toISOString(),
     players: room.players.map(({ id, nickname, avatar, connected }) => ({ id, nickname, avatar, connected })),
+  }
+}
+
+export function toPublicRoomWithHost(room: Room, expiresAt: number): PublicRoomState & { hasHost: boolean; hostAvatar: Avatar | undefined } {
+  return {
+    code: room.code,
+    gameType: room.gameType,
+    capacity: room.capacity,
+    expiresAt: new Date(expiresAt).toISOString(),
+    players: room.players.map(({ id, nickname, avatar, connected }) => ({ id, nickname, avatar, connected })),
+    hasHost: room.hostId !== undefined,
+    hostAvatar: room.host?.avatar,
   }
 }

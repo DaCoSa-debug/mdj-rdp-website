@@ -1,12 +1,14 @@
 import { createServer } from 'node:http'
 import { Server } from 'socket.io'
 import {
+  createHostRoomSchema,
   createRoomSchema,
   emoteSchema,
   fireSchema,
   gameReadySchema,
   joinRoomSchema,
   leaveRoomSchema,
+  resumeHostSchema,
   resumeRoomSchema,
   type ClientToServerEvents,
   type RoomErrorCode,
@@ -98,6 +100,15 @@ export function createRealtimeServer(options: { manager?: RoomManager; corsOrigi
       socket.emit('room:created', { room: result.room, session: result.session })
     }))
 
+    socket.on('room:host-create', guarded(createHostRoomSchema, payload => {
+      const result = manager.createHostRoom(payload.gameType, payload.capacity ?? 2, payload.avatar ?? '🎮', socket.id)
+      roomBySocket.set(socket.id, result.room.code)
+      playerBySocket.set(socket.id, result.session.hostId)
+      socket.join(result.room.code)
+      socket.join(result.session.hostId)
+      socket.emit('room:host-created', { room: result.room, session: result.session })
+    }))
+
     socket.on('room:join', guarded(joinRoomSchema, payload => {
       const result = manager.joinRoom(payload.roomCode, payload.nickname.trim(), payload.avatar, socket.id)
       roomBySocket.set(socket.id, result.room.code)
@@ -116,6 +127,17 @@ export function createRealtimeServer(options: { manager?: RoomManager; corsOrigi
       socket.join(result.room.code)
       socket.join(payload.playerId)
       socket.emit('room:joined', { room: result.room, session: { playerId: payload.playerId, sessionToken: payload.sessionToken } })
+      emitRoomState(result.room.code)
+      emitBattleState(result.room.code)
+    }))
+
+    socket.on('room:host-resume', guarded(resumeHostSchema, payload => {
+      const result = manager.resumeHostRoom(payload.roomCode, payload.hostId, payload.sessionToken, socket.id)
+      roomBySocket.set(socket.id, result.room.code)
+      playerBySocket.set(socket.id, payload.hostId)
+      socket.join(result.room.code)
+      socket.join(payload.hostId)
+      socket.emit('room:host-resumed', { room: result.room, session: { hostId: payload.hostId, sessionToken: payload.sessionToken } })
       emitRoomState(result.room.code)
       emitBattleState(result.room.code)
     }))
