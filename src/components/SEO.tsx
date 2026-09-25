@@ -14,7 +14,11 @@ export default function SEO({ path, search }: SEOProps) {
   useEffect(() => {
     document.title = meta.title
 
-    const isArcadeGameRoute = (path === '/arcade' && search?.includes('game=')) || path.startsWith('/arcade/battleship')
+    const isArcadeGameRoute =
+      (path === '/arcade' && search?.includes('game=')) ||
+      path.startsWith('/arcade/battleship') ||
+      path === '/arcade/tv' ||
+      path.startsWith('/arcade/join/')
     const robotsValue = isArcadeGameRoute ? 'noindex, follow' : (meta.robots || 'index, follow')
 
     const metaTags = [

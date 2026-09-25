@@ -11,6 +11,8 @@ import EspaceParents from './pages/EspaceParents'
 import Emplois from './pages/Emplois'
 import Arcade from './pages/Arcade'
 import BattleshipLobby from './pages/BattleshipLobby'
+import TvLobby from './pages/TvLobby'
+import JoinLobby from './pages/JoinLobby'
 import Contact from './pages/Contact'
 import Don from './pages/Don'
 import SEO from './components/SEO'
@@ -32,8 +34,10 @@ export default function App() {
         <Route path="/espace-parents" element={<EspaceParents />} />
         <Route path="/emplois" element={<Emplois />} />
         <Route path="/arcade" element={<Arcade />} />
+        <Route path="/arcade/tv" element={<TvLobby />} />
         <Route path="/arcade/battleship" element={<BattleshipLobby />} />
         <Route path="/arcade/battleship/join/:roomCode" element={<BattleshipLobby />} />
+        <Route path="/arcade/join/:roomCode" element={<JoinLobby />} />
         <Route path="/contact" element={<Contact />} />
         <Route path="/don" element={<Don />} />
       </Routes>

@@ -67,6 +67,16 @@ const metadata: Record<string, PageMetadata> = {
       "Découvrez l'arcade gratuit de la Maison des jeunes de Rivière-des-Prairies : quiz, Triki, Snake, RDP Run et plus encore, spécialement conçus pour les jeunes.",
     ogImage: '/images/arcade/mdj-arcade-hero.png',
   },
+  '/arcade/tv': {
+    title: 'MDJ Arcade TV — Salle de jeu',
+    description: 'Salle TV MDJ Arcade.',
+    robots: 'noindex, nofollow',
+  },
+  '/arcade/join/:roomCode': {
+    title: 'Rejoindre une salle MDJ Arcade',
+    description: 'Rejoindre une salle MDJ Arcade.',
+    robots: 'noindex, nofollow',
+  },
 }
 
 export function getPageMetadata(path: string): PageMetadata {

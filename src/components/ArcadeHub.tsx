@@ -57,6 +57,10 @@ function GameCard({ id, emoji, title, desc, meta, record, onPlay, disabled = fal
   )
 }
 
+function TvCard() {
+  return <div className="rounded-3xl border-2 border-[#29ABE2]/55 bg-gradient-to-br from-[#123452] to-[#2a2020] p-7 text-center sm:p-8"><div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-[#F05063]/20 text-4xl shadow-lg shadow-[#F05063]/20">📺</div><p className="mt-5 text-xs font-black tracking-[.2em] text-[#8ed9ff]">EN DIRECT · SALLE TV</p><h3 className="mt-2 text-2xl font-black text-white">MDJ Arcade TV</h3><p className="mt-2 text-sm text-white/65">Utilisez la TV comme écran principal et vos téléphones comme manettes.</p><div className="mt-6 gap-3"><Link to="/arcade/tv" className="flex min-h-12 items-center justify-center rounded-2xl bg-gradient-to-r from-[#29ABE2] to-[#F05063] px-4 font-black text-white active:scale-[.98]">Créer une salle TV</Link></div></div>
+}
+
 interface PlayerNameBarProps { name: string; onEdit: () => void }
 
 function PlayerNameBar({ name, onEdit }: PlayerNameBarProps) {
@@ -164,6 +168,7 @@ export default function ArcadeHub({ onSelectGame, onEndSession }: ArcadeHubProps
             disabled={!playerName}
           />
         ))}
+        <TvCard />
         <BattleshipCard />
       </div>
       <GlobalLeaderboard />
